@@ -1,0 +1,2276 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Tests cognitifs - Évaluez vos capacités mentales">
+    <meta name="theme-color" content="#2196F3">
+    <title>Tests Cognitifs</title>
+    <link rel="icon" type="image/png" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%232196F3' width='192' height='192'/><text x='96' y='130' font-size='120' font-weight='bold' text-anchor='middle' fill='white'>TC</text></svg>">
+    <link rel="manifest" href="data:application/json,{%22name%22:%22Tests%20Cognitifs%22,%22short_name%22:%22Tests%22,%22start_url%22:%22./%22,%22display%22:%22standalone%22,%22background_color%22:%22%23ffffff%22,%22theme_color%22:%22%232196F3%22,%22icons%22:[{%22src%22:%22data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%232196F3' width='192' height='192'/><text x='96' y='130' font-size='120' font-weight='bold' text-anchor='middle' fill='white'>TC</text></svg>%22,%22sizes%22:%22192x192%22,%22type%22:%22image/svg+xml%22}]}">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .card { background: white; border-radius: 16px; padding: 24px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1, h2 { color: #2196F3; margin-bottom: 16px; }
+        button { background: #2196F3; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 16px; margin: 8px 4px; transition: all 0.3s; }
+        button:hover { background: #1976D2; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4); }
+        button:active { transform: translateY(0); }
+        input { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #2196F3; border-radius: 8px; font-size: 16px; }
+        .options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 16px 0; }
+        .option-btn { background: #f5f5f5; color: #333; border: 2px solid #ddd; padding: 16px; text-align: center; transition: all 0.3s; }
+        .option-btn:hover { border-color: #2196F3; background: #e3f2fd; }
+        .option-btn.selected { background: #2196F3; color: white; border-color: #2196F3; }
+        .option-btn.correct { background: #4caf50; color: white; border-color: #4caf50; }
+        .option-btn.incorrect { background: #f44336; color: white; border-color: #f44336; }
+        .timer { font-size: 24px; font-weight: bold; color: #2196F3; margin: 16px 0; }
+        .progress { width: 100%; height: 8px; background: #e0e0e0; border-radius: 4px; margin: 16px 0; overflow: hidden; }
+        .progress-bar { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); transition: width 0.3s; }
+        .score { font-size: 32px; font-weight: bold; color: #2196F3; text-align: center; margin: 20px 0; }
+        .leaderboard { margin-top: 20px; }
+        .leaderboard-item { display: grid; grid-template-columns: 30px 1fr auto; gap: 12px; padding: 12px; background: #f9f9f9; border-radius: 8px; margin-bottom: 8px; align-items: center; }
+        .medal { font-size: 20px; }
+        .leaderboard-item.place1 { background: #fff3e0; border-left: 4px solid #ffc107; }
+        .leaderboard-item.place2 { background: #f3f3f3; border-left: 4px solid #c0c0c0; }
+        .leaderboard-item.place3 { background: #fce4ec; border-left: 4px solid #cd7f32; }
+        .hidden { display: none !important; }
+        .center { text-align: center; }
+        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .menu-btn { padding: 20px; text-align: center; background: #f5f5f5; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; transition: all 0.3s; }
+        .menu-btn:hover { border-color: #2196F3; background: #e3f2fd; }
+        .menu-btn h3 { color: #2196F3; margin-bottom: 8px; }
+        .difficulty-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin: 16px 0; }
+        .difficulty-btn { padding: 12px; text-align: center; background: #f5f5f5; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; }
+        .difficulty-btn:hover { border-color: #2196F3; background: #e3f2fd; }
+        #playerNameInput { margin: 12px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Accueil -->
+        <div id="homeScreen" class="card center">
+            <h1>🧠 Tests Cognitifs</h1>
+            <p style="margin: 16px 0; color: #666;">Évaluez vos capacités mentales</p>
+            <button onclick="goToTestSelection()">Commencer</button>
+            <button onclick="viewLeaderboard()">Classements</button>
+        </div>
+
+        <!-- Sélection du test -->
+        <div id="testSelectionScreen" class="card hidden">
+            <h2>Choisir un test</h2>
+            <div class="menu-grid" id="testGrid"></div>
+            <button onclick="goHome()" style="width: 100%; margin-top: 16px;">← Retour</button>
+        </div>
+
+        <!-- Sélection de la difficulté -->
+        <div id="difficultyScreen" class="card hidden">
+            <h2 id="difficultyTitle"></h2>
+            <p id="difficultyDesc"></p>
+            <div class="difficulty-grid" id="difficultyGrid"></div>
+            <button onclick="goToTestSelection()" style="width: 100%; margin-top: 16px;">← Retour</button>
+        </div>
+
+        <!-- Écran du test -->
+        <div id="testScreen" class="card hidden">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h2 id="testTitle"></h2>
+                <div class="timer" id="timer"></div>
+            </div>
+            <div class="progress">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <p id="questionCounter" style="color: #666; margin-bottom: 16px;"></p>
+            
+            <div id="testContent"></div>
+            
+            <div style="margin-top: 20px; display: flex; gap: 10px;">
+                <button id="prevBtn" onclick="previousQuestion()" style="flex: 1;">← Précédent</button>
+                <button id="nextBtn" onclick="nextQuestion()" style="flex: 1;">Suivant →</button>
+                <button id="submitBtn" onclick="submitTest()" style="flex: 1; display: none; background: #4caf50;">Terminer</button>
+            </div>
+        </div>
+
+        <!-- Résultats -->
+        <div id="resultsScreen" class="card hidden center">
+            <h2>Test Terminé ✓</h2>
+            <div class="score" id="scoreDisplay"></div>
+            
+            <input type="text" id="playerNameInput" placeholder="Votre nom (pour enregistrer votre score)">
+            
+            <button onclick="saveResult()" style="background: #4caf50;">💾 Enregistrer mon score</button>
+            
+            <div id="leaderboardResult" class="leaderboard"></div>
+            
+            <button onclick="goHome()" style="width: 100%; margin-top: 20px;">← Retour à l'accueil</button>
+        </div>
+
+        <!-- Classements -->
+        <div id="leaderboardScreen" class="card hidden">
+            <h2>Classements Globaux</h2>
+            <div id="leaderboardContent"></div>
+            <button onclick="goHome()" style="width: 100%; margin-top: 20px;">← Retour à l'accueil</button>
+        </div>
+    </div>
+
+    <script>
+        // ================ BASE DE DONNÉES LOCALE ================
+        const DB_KEY = 'cognitive_tests_results';
+        
+        function loadResults() {
+            const data = localStorage.getItem(DB_KEY);
+            return data ? JSON.parse(data) : {};
+        }
+        
+        function saveResults(results) {
+            localStorage.setItem(DB_KEY, JSON.stringify(results));
+        }
+        
+        function addResult(testName, difficulty, playerName, score, totalQuestions, timeSeconds) {
+            let results = loadResults();
+            const key = `${testName}_${difficulty}`;
+            
+            if (!results[key]) results[key] = [];
+            
+            results[key].push({
+                name: playerName,
+                score: score,
+                total: totalQuestions,
+                time: timeSeconds,
+                date: new Date().toLocaleString('fr-FR')
+            });
+            
+            // Garder seulement les 3 meilleurs (score desc, puis time asc)
+            results[key].sort((a, b) => {
+                if (b.score !== a.score) return b.score - a.score;
+                return a.time - b.time;
+            });
+            results[key] = results[key].slice(0, 3);
+            
+            saveResults(results);
+        }
+        
+        function getLeaderboard(testName, difficulty) {
+            let results = loadResults();
+            const key = `${testName}_${difficulty}`;
+            return results[key] || [];
+        }
+        
+        // ================ VARIABLES GLOBALES ================
+        let currentTest = 1;
+        let currentDifficulty = '';
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let totalQuestions = 10;
+        let startTime = 0;
+        let timerInterval = null;
+        let answers = [];
+        let testQuestions = [];
+        
+        const TESTS = [
+            {
+                id: 1,
+                name: 'Test 1: Aisance Numérique',
+                difficulties: ['10 Questions', '20 Questions', '50 Questions', '3 minutes', '9 minutes']
+            },
+            {
+                id: 2,
+                name: 'Test 2: Rapidité Mentale',
+                difficulties: ['10 Questions', '20 Questions', '50 Questions', '3 minutes', '9 minutes']
+            },
+            {
+                id: 3,
+                name: 'Test 3: Mémoire',
+                difficulties: ['10 Questions', '20 Questions', '50 Questions', '3 minutes', '9 minutes']
+            },
+            {
+                id: 4,
+                name: 'Test 4: Logique',
+                difficulties: ['10 Questions', '20 Questions', '50 Questions', '3 minutes', '9 minutes']
+            },
+            {
+                id: 5,
+                name: 'Test 5: Attention',
+                difficulties: ['10 Questions', '20 Questions', '50 Questions', '3 minutes', '9 minutes']
+            }
+        ];
+        
+        // ================ LOGIQUE ORIGINALE DES TESTS ================
+
+        let TOTAL_QUESTIONS = 10;
+        let currentQuestion = 1;
+        let score = 0;
+        let startTime = Date.now();
+        let operation1 = {};
+        let operation2 = {};
+        let userAnswer = null;
+        let answersHistory = [];
+        let timerInterval = null;
+        let currentTest = 1;
+        
+        // Variables pour Test 1 (mode temps)
+        let test1Mode = 'questions';
+        let test1TimeLimit = 0;
+        let test1TimeRemaining = 0;
+        let test1ElapsedTime = 0;
+        
+        // Variables pour Test 2
+        let currentRule = null;
+        let correctAnswer2 = null;
+        let userAnswer2 = null;
+        let test2Answers = [];
+        
+        // Variables pour Test 2 (mode temps)
+        let test2Mode = 'questions';
+        let test2TimeLimit = 0;
+        let test2TimeRemaining = 0;
+        let test2ElapsedTime = 0;
+
+        // Variables pour Test 3
+        let test3Themes = [];
+        let test3Words = [];
+        let test3CorrectCount = 0;
+        let test3CorrectPositions = new Set();
+        let userAnswer3 = null;
+        let test3Answers = [];
+        let test3ThemesList = [];
+        let test3Mode = 'questions';
+        let test3TimeLimit = 0;
+        let test3TimeRemaining = 0;
+        let test3ElapsedTime = 0;
+        const test3ThemesData = {"themes": {"PAYS": ["France", "Espagne", "Italie", "Allemagne", "Belgique", "Suisse", "Angleterre", "Irlande", "Portugal", "Grèce", "Pologne", "Tchéquie", "Hongrie", "Roumanie", "Bulgarie", "Serbie", "Croatie", "Slovénie", "Autriche", "Suède", "Norvège", "Danemark", "Finlande", "Islande", "Russie", "Ukraine", "Canada", "États-Unis", "Mexique", "Brésil", "Argentine", "Chili", "Pérou", "Colombie", "Venezuela", "Japon", "Chine", "Corée", "Thaïlande", "Vietnam"], "VÊTEMENTS": ["Chemise", "T-shirt", "Pantalon", "Jean", "Jupe", "Robe", "Veste", "Manteau", "Pull", "Cardigan", "Gilet", "Chaussette", "Collant", "Ceinture", "Écharpe", "Foulard", "Bonnet", "Chapeau", "Casquette", "Béret", "Gants", "Moufles", "Chaussure", "Baskets", "Mocassins", "Sandales", "Bottes", "Bottines", "Short", "Bermuda", "Costume", "Parka", "Doudoune", "Blouson", "Poncho"], "FRUITS": ["Pomme", "Poire", "Pêche", "Abricot", "Prune", "Raisin", "Fraise", "Framboise", "Mûre", "Myrtille", "Groseille", "Cassis", "Cerise", "Banane", "Orange", "Citron", "Clémentine", "Mandarine", "Pamplemousse", "Ananas", "Kiwi", "Figue", "Datte", "Grenade", "Mangue", "Papaye", "Litchi", "Pastèque", "Melon", "Amande", "Noix", "Noisette"], "ANIMAUX": ["Chat", "Chien", "Souris", "Rat", "Hamster", "Lapin", "Écureuil", "Léopard", "Tigre", "Lion", "Puma", "Jaguar", "Lynx", "Loup", "Renard", "Blaireau", "Loutre", "Phoque", "Vache", "Taureau", "Brebis", "Agneau", "Chèvre", "Cochon", "Cheval", "Âne", "Chameau", "Girafe", "Zèbre", "Éléphant", "Rhinocéros", "Hippopotame", "Kangourou", "Koala", "Panda", "Ours", "Gorille", "Singe", "Aigle", "Faucon", "Hibou", "Chouette", "Perroquet", "Canari", "Corbeau", "Pie", "Moineau", "Pigeon", "Canard", "Oie", "Cygne", "Flamant", "Pingouin", "Dauphin", "Baleine", "Requin", "Tortue", "Crocodile", "Serpent", "Lézard"]}};
+
+        // Variables pour Test 4
+        let test4Mode = 'questions';
+        let test4TimeLimit = 0;
+        let test4TimeRemaining = 0;
+        let test4ElapsedTime = 0;
+        let test4Answers = [];
+        let userAnswer4 = null;
+        let currentTest4Question = null;
+
+        // Données pour Test 4
+        const test4Data = {
+            themes: {
+                animaux: ["le chat", "le chien", "la souris", "le lapin", "l'éléphant", "la girafe", "le lion", "le tigre", "l'ours", "le loup", "le renard", "le cochon", "la vache", "le cheval", "l'âne", "le mouton", "la chèvre", "le canard", "la poule", "le coq", "l'aigle", "le hibou", "le serpent", "la tortue", "le dauphin", "la baleine", "le requin", "le singe", "le zèbre", "l'hippopotame"],
+                vehicules: ["la voiture", "le vélo", "la moto", "le bus", "le train", "l'avion", "l'hélicoptère", "le bateau", "le camion", "le tracteur", "la trottinette", "le scooter", "le métro", "le tramway", "le taxi", "l'ambulance", "le ferry", "le yacht", "le sous-marin", "la fusée"],
+                personnes: ["Sophie", "Marc", "Léa", "Thomas", "Emma", "Lucas", "Julie", "Pierre", "Marie", "Paul", "Laura", "Nicolas", "Sarah", "Antoine", "Claire", "Maxime", "Alice", "Hugo", "Camille", "Louis", "Chloé", "Gabriel", "Manon", "Raphaël", "Inès"],
+                fruits: ["la pomme", "la poire", "la banane", "l'orange", "le citron", "la fraise", "la cerise", "le raisin", "l'ananas", "la pastèque", "le melon", "la pêche", "l'abricot", "la prune", "la mangue", "le kiwi", "la figue", "la grenade", "la noix de coco", "la papaye"],
+                objets: ["le livre", "la table", "la chaise", "le téléphone", "l'ordinateur", "la lampe", "le stylo", "le cahier", "le sac", "la montre", "les lunettes", "le parapluie", "la bouteille", "l'assiette", "le verre", "la tasse", "le couteau", "la fourchette", "la cuillère", "le miroir"],
+                villes: ["Paris", "Lyon", "Marseille", "Bordeaux", "Lille", "Nantes", "Toulouse", "Nice", "Strasbourg", "Montpellier", "Rennes", "Grenoble", "Dijon", "Angers", "Reims", "Toulon", "Le Havre", "Saint-Étienne", "Brest", "Clermont-Ferrand"],
+                sports: ["le football", "le tennis", "le basketball", "la natation", "le cyclisme", "la course", "le ski", "le golf", "le rugby", "le volleyball", "le handball", "la boxe", "le judo", "l'escrime", "la gymnastique", "le surf", "l'escalade", "le patinage", "le badminton", "le ping-pong"]
+            },
+            attributs: [
+                { positif: "rapide", negatif: "lent", questionPositif: "le plus rapide", questionNegatif: "le plus lent", genre: "m" },
+                { positif: "grand", negatif: "petit", questionPositif: "le plus grand", questionNegatif: "le plus petit", genre: "m" },
+                { positif: "lourd", negatif: "léger", questionPositif: "le plus lourd", questionNegatif: "le plus léger", genre: "m" },
+                { positif: "cher", negatif: "bon marché", questionPositif: "le plus cher", questionNegatif: "le moins cher", genre: "m" },
+                { positif: "vieux", negatif: "jeune", questionPositif: "le plus vieux", questionNegatif: "le plus jeune", genre: "m" },
+                { positif: "long", negatif: "court", questionPositif: "le plus long", questionNegatif: "le plus court", genre: "m" },
+                { positif: "haut", negatif: "bas", questionPositif: "le plus haut", questionNegatif: "le plus bas", genre: "m" },
+                { positif: "fort", negatif: "faible", questionPositif: "le plus fort", questionNegatif: "le plus faible", genre: "m" },
+                { positif: "intelligent", negatif: "bête", questionPositif: "le plus intelligent", questionNegatif: "le plus bête", genre: "m" },
+                { positif: "bruyant", negatif: "silencieux", questionPositif: "le plus bruyant", questionNegatif: "le plus silencieux", genre: "m" }
+            ]
+        };
+
+        // Variables pour Test 5
+        let test5Mode = 'questions';
+        let test5TimeLimit = 0;
+        let test5TimeRemaining = 0;
+        let test5ElapsedTime = 0;
+        let test5Answers = [];
+        let userAnswer5 = null;
+        let currentTest5Question = null;
+
+        // Directions et couleurs pour Test 2
+        const directions = ['↖', '↗', '↙', '↘'];
+        const directionNames = {
+            '↖': 'Haut Gauche',
+            '↗': 'Haut Droit',
+            '↙': 'Bas Gauche',
+            '↘': 'Bas Droit'
+        };
+        const colors = ['Blanc', 'Noir'];
+        const relations = ['AU-DESSUS', 'AU-DESSOUS'];
+        const relationNames = {
+            'AU-DESSUS': 'AU-DESSUS de',
+            'AU-DESSOUS': 'AU-DESSOUS de'
+        };
+
+        // Fonction utilitaire pour formater les secondes
+        function formatSeconds(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            if (mins > 0) {
+                return `${mins}m ${secs}s`;
+            }
+            return `${secs}s`;
+        }
+
+        function goToTestMenu(testNum) {
+            currentTest = testNum;
+            if (testNum === 1) {
+                showScreen(1);
+            } else if (testNum === 2) {
+                showScreen(7);
+            } else if (testNum === 3) {
+                showScreen(10);
+            } else if (testNum === 4) {
+                showScreen(13);
+            } else if (testNum === 5) {
+                showScreen(15);
+            }
+        }
+
+        function startTest(value, mode) {
+            test1Mode = mode;
+            currentQuestion = 1;
+            score = 0;
+            answersHistory = [];
+            startTime = Date.now();
+            userAnswer = null;
+            
+            clearInterval(timerInterval);
+            
+            if (mode === 'questions') {
+                TOTAL_QUESTIONS = value;
+                test1TimeLimit = 999999;
+                document.getElementById('questionsSeparator').style.display = 'inline';
+                document.getElementById('totalQuestions').style.display = 'inline';
+                document.getElementById('totalQuestions').textContent = value;
+                test1ElapsedTime = 0;
+                document.getElementById('timeDisplay').textContent = '0s';
+                timerInterval = setInterval(() => updateElapsedTimer1(), 1000);
+            } else if (mode === 'time') {
+                test1TimeLimit = value;
+                test1TimeRemaining = value;
+                TOTAL_QUESTIONS = 9999;
+                document.getElementById('questionsSeparator').style.display = 'none';
+                document.getElementById('totalQuestions').style.display = 'none';
+                document.getElementById('timeDisplay').textContent = formatSeconds(test1TimeRemaining);
+                timerInterval = setInterval(() => updateCountdownTimer1(), 1000);
+            }
+
+            document.getElementById('currentQuestion').textContent = '1';
+            document.getElementById('correctCount').textContent = '0';
+
+            showScreen(2);
+            newQuestion();
+        }
+        
+        function updateElapsedTimer1() {
+            test1ElapsedTime++;
+            document.getElementById('timeDisplay').textContent = formatSeconds(test1ElapsedTime);
+        }
+        
+        function updateCountdownTimer1() {
+            if (test1TimeRemaining > 0) {
+                test1TimeRemaining--;
+            }
+            
+            document.getElementById('timeDisplay').textContent = formatSeconds(test1TimeRemaining);
+            
+            if (test1TimeRemaining <= 0) {
+                clearInterval(timerInterval);
+                endTest1();
+            }
+        }
+        
+        function endTest1() {
+            // Valide la réponse en cours si une sélection a été faite
+            if (userAnswer !== null) {
+                validateAnswer();
+            }
+            TOTAL_QUESTIONS = currentQuestion - 1;
+            if (TOTAL_QUESTIONS < 1) TOTAL_QUESTIONS = 1;
+            showSummary();
+        }
+
+        function startTest2(value, mode) {
+            test2Mode = mode;
+            currentQuestion = 1;
+            score = 0;
+            test2Answers = [];
+            startTime = Date.now();
+            userAnswer2 = null;
+            
+            clearInterval(timerInterval);
+            
+            if (mode === 'questions') {
+                TOTAL_QUESTIONS = value;
+                test2TimeLimit = 999999;
+                document.getElementById('questionsSeparator').style.display = 'inline';
+                document.getElementById('totalQuestions').style.display = 'inline';
+                document.getElementById('totalQuestions').textContent = value;
+                test2ElapsedTime = 0;
+                document.getElementById('timeDisplay').textContent = '0s';
+                timerInterval = setInterval(() => updateElapsedTimer2(), 1000);
+            } else if (mode === 'time') {
+                test2TimeLimit = value;
+                test2TimeRemaining = value;
+                TOTAL_QUESTIONS = 9999;
+                document.getElementById('questionsSeparator').style.display = 'none';
+                document.getElementById('totalQuestions').style.display = 'none';
+                document.getElementById('timeDisplay').textContent = formatSeconds(test2TimeRemaining);
+                timerInterval = setInterval(() => updateCountdownTimer2(), 1000);
+            }
+
+            document.getElementById('currentQuestion').textContent = '1';
+            document.getElementById('correctCount').textContent = '0';
+
+            showScreen(8);
+            newQuestion2();
+        }
+        
+        function updateElapsedTimer2() {
+            test2ElapsedTime++;
+            document.getElementById('timeDisplay').textContent = formatSeconds(test2ElapsedTime);
+        }
+        
+        function updateCountdownTimer2() {
+            if (test2TimeRemaining > 0) {
+                test2TimeRemaining--;
+            }
+            
+            document.getElementById('timeDisplay').textContent = formatSeconds(test2TimeRemaining);
+            
+            if (test2TimeRemaining <= 0) {
+                clearInterval(timerInterval);
+                endTest2();
+            }
+        }
+        
+        function endTest2() {
+            TOTAL_QUESTIONS = currentQuestion - 1;
+            if (TOTAL_QUESTIONS < 1) TOTAL_QUESTIONS = 1;
+            showSummary2();
+        }
+
+        // Générateur d'opérations aléatoires
+        function generateOperation(minResult = 5, maxResult = 100) {
+            const operators = ['+', '-', '*', '÷'];
+            let operator, a, b, result;
+            let isValid = false;
+
+            while (!isValid) {
+                operator = operators[Math.floor(Math.random() * operators.length)];
+                
+                if (operator === '+') {
+                    a = Math.floor(Math.random() * 80) + 5;
+                    b = Math.floor(Math.random() * 80) + 5;
+                    result = a + b;
+                } else if (operator === '-') {
+                    a = Math.floor(Math.random() * 80) + 20;
+                    b = Math.floor(Math.random() * a);
+                    result = a - b;
+                } else if (operator === '*') {
+                    a = Math.floor(Math.random() * 15) + 2;
+                    b = Math.floor(Math.random() * 15) + 2;
+                    result = a * b;
+                } else if (operator === '÷') {
+                    b = Math.floor(Math.random() * 10) + 2;
+                    a = b * (Math.floor(Math.random() * 12) + 2);
+                    result = a / b;
+                }
+
+                isValid = result >= minResult && result <= maxResult && result > 0;
+            }
+
+            return {
+                a,
+                b,
+                operator,
+                result: Math.floor(result),
+                display: `${a} ${operator} ${b}`
+            };
+        }
+
+        function generatePair() {
+            let op1 = generateOperation(5, 100);
+            let op2;
+            
+            const targetRange = 15;
+            const minResult = Math.max(5, op1.result - targetRange);
+            const maxResult = Math.min(100, op1.result + targetRange);
+            
+            const random = Math.random();
+            
+            if (random < 0.33) {
+                do {
+                    op2 = generateOperation(op1.result, op1.result);
+                } while (op2.a === op1.a && op2.b === op1.b && op2.operator === op1.operator);
+            } else if (random < 0.66) {
+                do {
+                    op2 = generateOperation(minResult, maxResult);
+                } while (op2.result === op1.result);
+            } else {
+                do {
+                    op2 = generateOperation(minResult, maxResult);
+                } while (op2.result === op1.result);
+            }
+
+            return { op1, op2 };
+        }
+
+        // ===== TEST 2 : ORIENTATION SPATIALE =====
+
+        function generateRule() {
+            // Choisir 2 directions et 2 couleurs aléatoires
+            const direction1 = directions[Math.floor(Math.random() * directions.length)];
+            const direction2 = directions[Math.floor(Math.random() * directions.length)];
+            const color1 = colors[Math.floor(Math.random() * colors.length)];
+            const color2 = colors[Math.floor(Math.random() * colors.length)];
+            
+            // Choisir aléatoirement la relation pour les couleurs (50% AU-DESSUS, 50% AU-DESSOUS)
+            const colorRelation = relations[Math.floor(Math.random() * relations.length)];
+            // Choisir aléatoirement la relation pour les directions (50% AU-DESSUS, 50% AU-DESSOUS)
+            const dirRelation = relations[Math.floor(Math.random() * relations.length)];
+            
+            // Déterminer les couleurs des flèches selon la relation
+            // arrow1 = flèche du HAUT, arrow2 = flèche du BAS
+            // "X AU-DESSUS de Y" → X en haut, Y en bas
+            // "X AU-DESSOUS de Y" → Y en haut, X en bas
+            let topColor, bottomColor;
+            if (colorRelation === 'AU-DESSUS') {
+                topColor = color1;      // color1 est au-dessus
+                bottomColor = color2;   // color2 est en-dessous
+            } else {
+                topColor = color2;      // color2 est au-dessus (car color1 est en-dessous)
+                bottomColor = color1;   // color1 est en-dessous
+            }
+            
+            // Déterminer les directions des flèches selon la relation
+            let topDirection, bottomDirection;
+            if (dirRelation === 'AU-DESSUS') {
+                topDirection = direction1;    // direction1 est au-dessus
+                bottomDirection = direction2; // direction2 est en-dessous
+            } else {
+                topDirection = direction2;    // direction2 est au-dessus (car direction1 est en-dessous)
+                bottomDirection = direction1; // direction1 est en-dessous
+            }
+            
+            const arrow1 = { direction: topDirection, color: topColor };       // Flèche du HAUT
+            const arrow2 = { direction: bottomDirection, color: bottomColor }; // Flèche du BAS
+            
+            // Créer les lignes de consigne avec les relations appropriées
+            const dirLine = `${directionNames[direction1]} ${relationNames[dirRelation]} ${directionNames[direction2]}`;
+            const colorLine = `${color1} ${relationNames[colorRelation]} ${color2}`;
+            
+            // Alterner l'ordre des consignes aléatoirement
+            const colorFirst = Math.random() < 0.5;
+            const line1 = colorFirst ? colorLine : dirLine;
+            const line2 = colorFirst ? dirLine : colorLine;
+            
+            return {
+                arrow1,
+                arrow2,
+                colorRelation,
+                dirRelation,
+                line1,
+                line2
+            };
+        }
+
+        function countChanges(correct, candidate) {
+            let changes = 0;
+            if (correct.arrow1.direction !== candidate.arrow1.direction) changes++;
+            if (correct.arrow1.color !== candidate.arrow1.color) changes++;
+            if (correct.arrow2.direction !== candidate.arrow2.direction) changes++;
+            if (correct.arrow2.color !== candidate.arrow2.color) changes++;
+            return changes;
+        }
+
+        function isHomogeneousChange(correct, candidate) {
+            const dir1Change = correct.arrow1.direction !== candidate.arrow1.direction;
+            const dir2Change = correct.arrow2.direction !== candidate.arrow2.direction;
+            const col1Change = correct.arrow1.color !== candidate.arrow1.color;
+            const col2Change = correct.arrow2.color !== candidate.arrow2.color;
+            
+            return (dir1Change || dir2Change) && !(col1Change || col2Change) ||
+                   (col1Change || col2Change) && !(dir1Change || dir2Change);
+        }
+
+        function generateIncorrectAnswers(correctAnswer) {
+            const candidates = [];
+            
+            for (let d1 of directions) {
+                for (let c1 of colors) {
+                    for (let d2 of directions) {
+                        for (let c2 of colors) {
+                            const candidate = {
+                                arrow1: { direction: d1, color: c1 },
+                                arrow2: { direction: d2, color: c2 }
+                            };
+                            if (!(d1 === correctAnswer.arrow1.direction && c1 === correctAnswer.arrow1.color &&
+                                  d2 === correctAnswer.arrow2.direction && c2 === correctAnswer.arrow2.color)) {
+                                candidates.push(candidate);
+                            }
+                        }
+                    }
+                }
+            }
+            
+            candidates.sort((a, b) => {
+                const changesA = countChanges(correctAnswer, a);
+                const changesB = countChanges(correctAnswer, b);
+                return changesA - changesB;
+            });
+            
+            const incorrectAnswers = [];
+            const maxAttempts = candidates.length * 2;
+            let attempts = 0;
+            
+            while (incorrectAnswers.length < 8 && attempts < maxAttempts) {
+                const candidate = candidates[Math.floor(Math.random() * candidates.length)];
+                
+                const alreadyExists = incorrectAnswers.some(ans => 
+                    ans.arrow1.direction === candidate.arrow1.direction &&
+                    ans.arrow1.color === candidate.arrow1.color &&
+                    ans.arrow2.direction === candidate.arrow2.direction &&
+                    ans.arrow2.color === candidate.arrow2.color
+                );
+                
+                if (alreadyExists) {
+                    attempts++;
+                    continue;
+                }
+                
+                const changes = countChanges(correctAnswer, candidate);
+                let probability = 0;
+                
+                if (changes === 1) {
+                    probability = 0.45;
+                } else if (changes === 2) {
+                    const isHomogeneous = isHomogeneousChange(correctAnswer, candidate);
+                    probability = isHomogeneous ? 0.22 : 0.13;
+                } else if (changes === 3) {
+                    probability = 0.15;
+                } else if (changes === 4) {
+                    probability = 0.05;
+                }
+                
+                if (Math.random() < probability) {
+                    incorrectAnswers.push(candidate);
+                }
+                
+                attempts++;
+            }
+            
+            const usedAnswers = new Set(incorrectAnswers.map(a => 
+                `${a.arrow1.direction}${a.arrow1.color}${a.arrow2.direction}${a.arrow2.color}`
+            ));
+            
+            while (incorrectAnswers.length < 5) {
+                const candidate = candidates[Math.floor(Math.random() * candidates.length)];
+                const key = `${candidate.arrow1.direction}${candidate.arrow1.color}${candidate.arrow2.direction}${candidate.arrow2.color}`;
+                if (!usedAnswers.has(key)) {
+                    incorrectAnswers.push(candidate);
+                    usedAnswers.add(key);
+                }
+            }
+            
+            return incorrectAnswers.slice(0, 5);
+        }
+
+        function newQuestion2() {
+            currentRule = generateRule();
+            correctAnswer2 = {
+                arrow1: currentRule.arrow1,
+                arrow2: currentRule.arrow2
+            };
+            
+            document.getElementById('ruleLine1').textContent = currentRule.line1;
+            document.getElementById('ruleLine2').textContent = currentRule.line2;
+        }
+
+        function goToScreen9() {
+            const incorrectAnswers = generateIncorrectAnswers(correctAnswer2).slice(0, 5);
+            const allAnswers = [correctAnswer2, ...incorrectAnswers];
+            
+            for (let i = allAnswers.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [allAnswers[i], allAnswers[j]] = [allAnswers[j], allAnswers[i]];
+            }
+            
+            const grid = document.getElementById('answersGrid');
+            grid.innerHTML = '';
+            grid.style.gridTemplateColumns = '1fr 1fr';
+            grid.style.gap = '12px';
+            
+            allAnswers.forEach((answer, index) => {
+                const card = document.createElement('div');
+                card.className = 'answer-card';
+                
+                const createArrowSVG = (direction, color) => {
+                    const isWhite = color === 'Blanc';
+                    const fill = isWhite ? 'white' : 'black';
+                    const stroke = isWhite ? 'black' : 'white';
+                    
+                    const angles = {
+                        '↖': 315,
+                        '↗': 45,
+                        '↙': 225,
+                        '↘': 135
+                    };
+                    const angle = angles[direction];
+                    
+                    return `
+                        <svg width="45" height="45" viewBox="0 0 60 60" style="transform: rotate(${angle}deg);">
+                            <polygon points="30,5 50,40 40,40 40,55 20,55 20,40 10,40" 
+                                fill="${fill}" stroke="${stroke}" stroke-width="2"/>
+                        </svg>
+                    `;
+                };
+                
+                card.innerHTML = `
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                        <div>${createArrowSVG(answer.arrow1.direction, answer.arrow1.color)}</div>
+                        <div>${createArrowSVG(answer.arrow2.direction, answer.arrow2.color)}</div>
+                    </div>
+                `;
+                card.onclick = () => selectAnswer2(index, answer, card);
+                grid.appendChild(card);
+            });
+            
+            showScreen(9);
+            userAnswer2 = null;
+        }
+
+        function selectAnswer2(index, answer, card) {
+            document.querySelectorAll('.answer-card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            
+            userAnswer2 = answer;
+            document.getElementById('nextBtn2').style.display = 'block';
+        }
+
+        function nextQuestion2() {
+            const isCorrect = userAnswer2 && 
+                userAnswer2.arrow1.direction === correctAnswer2.arrow1.direction &&
+                userAnswer2.arrow1.color === correctAnswer2.arrow1.color &&
+                userAnswer2.arrow2.direction === correctAnswer2.arrow2.direction &&
+                userAnswer2.arrow2.color === correctAnswer2.arrow2.color;
+            
+            if (isCorrect) score++;
+            
+            test2Answers.push({
+                question: currentQuestion,
+                rule: { line1: currentRule.line1, line2: currentRule.line2 },
+                userAnswer: userAnswer2,
+                correctAnswer: correctAnswer2,
+                isCorrect: isCorrect
+            });
+            
+            currentQuestion++;
+            document.getElementById('currentQuestion').textContent = currentQuestion;
+            
+            if (currentQuestion > TOTAL_QUESTIONS) {
+                showSummary2();
+            } else {
+                newQuestion2();
+                showScreen(8);
+                document.getElementById('nextBtn2').style.display = 'none';
+                userAnswer2 = null;
+            }
+        }
+
+        function showSummary2() {
+            if (timerInterval) clearInterval(timerInterval);
+            
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('summary').classList.add('show');
+            document.querySelector('.stats').classList.add('show-score');
+            
+            document.getElementById('currentQuestion').textContent = TOTAL_QUESTIONS;
+            
+            const totalTime = Math.floor((Date.now() - startTime) / 1000);
+            const avgTime = Math.floor(totalTime / TOTAL_QUESTIONS);
+            const percentage = Math.round((score / TOTAL_QUESTIONS) * 100);
+            
+            document.getElementById('finalScore').textContent = `${score}/${TOTAL_QUESTIONS}`;
+            document.getElementById('scorePercentage').textContent = `${percentage}% de réussite`;
+            document.getElementById('totalTime').textContent = totalTime + 's';
+            document.getElementById('avgTime').textContent = avgTime + 's';
+            
+            let encouragement = '';
+            if (percentage === 100) {
+                encouragement = '🌟 Parfait ! Vous maîtrisez ce test.';
+            } else if (percentage >= 80) {
+                encouragement = '👏 Très bien ! Continuez à vous entraîner.';
+            } else if (percentage >= 60) {
+                encouragement = '💪 Bien ! Des progrès encore possibles.';
+            } else {
+                encouragement = '📚 Continuez vos entraînements pour progresser.';
+            }
+            document.getElementById('encouragement').textContent = encouragement;
+            
+            displayAnswersRecap2();
+        }
+
+        function displayAnswersRecap2() {
+            const createArrowSVG = (direction, color, size = 30) => {
+                const isWhite = color === 'Blanc';
+                const fill = isWhite ? 'white' : 'black';
+                const stroke = isWhite ? 'black' : 'white';
+                
+                const angles = {
+                    '↖': 315,
+                    '↗': 45,
+                    '↙': 225,
+                    '↘': 135
+                };
+                const angle = angles[direction];
+                
+                return `
+                    <svg width="${size}" height="${size}" viewBox="0 0 60 60" style="transform: rotate(${angle}deg); display: block;">
+                        <polygon points="30,5 50,40 40,40 40,55 20,55 20,40 10,40" 
+                            fill="${fill}" stroke="${stroke}" stroke-width="2"/>
+                    </svg>
+                `;
+            };
+
+            const recapDiv = document.getElementById('answersRecap');
+            let html = '<h3 style="text-align: left; margin-bottom: 15px; color: #333;">Détail des réponses</h3>';
+            
+            test2Answers.forEach((answer) => {
+                const isCorrect = answer.isCorrect;
+                const userArrowsHtml = answer.userAnswer ? `
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 3px;">
+                        ${createArrowSVG(answer.userAnswer.arrow1.direction, answer.userAnswer.arrow1.color, 25)}
+                        ${createArrowSVG(answer.userAnswer.arrow2.direction, answer.userAnswer.arrow2.color, 25)}
+                    </div>
+                ` : '—';
+                
+                const correctArrowsHtml = `
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 3px;">
+                        ${createArrowSVG(answer.correctAnswer.arrow1.direction, answer.correctAnswer.arrow1.color, 25)}
+                        ${createArrowSVG(answer.correctAnswer.arrow2.direction, answer.correctAnswer.arrow2.color, 25)}
+                    </div>
+                `;
+                
+                const fullRule = `${answer.rule.line1}<br>${answer.rule.line2}`;
+                
+                html += `
+                    <div class="answer-row">
+                        <div class="answer-num">#${answer.question}</div>
+                        <div class="answer-operations" style="font-size: 14px;">${fullRule}</div>
+                        <div class="answer-choices">
+                            <div class="choice ${isCorrect ? 'user correct' : 'user incorrect'}">
+                                ${userArrowsHtml}
+                            </div>
+                            ${!isCorrect ? `<div class="choice correct">${correctArrowsHtml}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            recapDiv.innerHTML = html;
+        }
+
+        function newQuestion() {
+            const pair = generatePair();
+            operation1 = pair.op1;
+            operation2 = pair.op2;
+            userAnswer = null;
+
+            document.getElementById('operation1').textContent = operation1.display;
+            showScreen(2);
+            updateProgress();
+        }
+
+        function showScreen(screenNum) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(`screen${screenNum}`).classList.add('active');
+            
+            const titleEl = document.getElementById('mainTitle');
+            if (screenNum === 0) {
+                titleEl.textContent = '📋 Choix des tests';
+            } else if (screenNum === 1 || screenNum === 2 || screenNum === 3 || screenNum === 4 || screenNum === 5 || screenNum === 6) {
+                titleEl.textContent = '🧮 Aisance Numérique';
+            } else if (screenNum === 7 || screenNum === 8 || screenNum === 9) {
+                titleEl.textContent = '🔺 Orientation Spatiale';
+            } else if (screenNum === 10 || screenNum === 11 || screenNum === 12) {
+                titleEl.textContent = '📝 Mémoire des Mots';
+            } else if (screenNum === 13 || screenNum === 14) {
+                titleEl.textContent = '🧠 Test de Raisonnement';
+            } else if (screenNum === 15 || screenNum === 16 || screenNum === 17) {
+                titleEl.textContent = '🔍 Test de Comparaison';
+            }
+            
+            const statsBar = document.querySelector('.stats');
+            if (screenNum === 0 || screenNum === 1 || screenNum === 7 || screenNum === 10 || screenNum === 13 || screenNum === 15) {
+                statsBar.style.display = 'none';
+            } else {
+                statsBar.style.display = 'flex';
+            }
+        }
+
+        function goToScreen2() {
+            document.getElementById('operation2').textContent = operation2.display;
+            showScreen(3);
+        }
+
+        function goToScreen3() {
+            showScreen(4);
+            userAnswer = null; // Réinitialise pour permettre nouvelle sélection
+            document.querySelectorAll('.btn-answer').forEach(btn => {
+                btn.classList.remove('active');
+                btn.disabled = false;
+            });
+            document.getElementById('result').classList.remove('show');
+            document.getElementById('nextBtn').style.display = 'none';
+        }
+
+        function selectAnswer(answer) {
+            userAnswer = answer;
+            
+            // Met à jour visuellement la sélection (permet de changer)
+            document.getElementById(`btn${answer}`).classList.add('active');
+            ['S', 'I', 'E'].filter(x => x !== answer).forEach(x => {
+                document.getElementById(`btn${x}`).classList.remove('active');
+            });
+
+            // Affiche le bouton Suivant mais ne valide pas encore
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('nextBtn').style.display = 'block';
+        }
+        
+        function validateAnswer() {
+            // Valide la réponse sélectionnée
+            if (userAnswer === null) return;
+            
+            const correct = getCorrectAnswer();
+            const isCorrect = userAnswer === correct;
+
+            if (isCorrect) {
+                score++;
+                document.getElementById('correctCount').textContent = score;
+            }
+
+            answersHistory.push({
+                question: currentQuestion,
+                operation1: operation1.display,
+                operation2: operation2.display,
+                userAnswer: userAnswer,
+                correctAnswer: correct,
+                isCorrect: isCorrect
+            });
+        }
+
+        function getCorrectAnswer() {
+            if (operation1.result > operation2.result) return 'S';
+            if (operation1.result < operation2.result) return 'I';
+            return 'E';
+        }
+
+        function nextQuestion() {
+            // Valide la réponse avant de passer à la suivante
+            validateAnswer();
+            
+            currentQuestion++;
+            document.getElementById('currentQuestion').textContent = currentQuestion;
+
+            if (currentQuestion > TOTAL_QUESTIONS) {
+                showSummary();
+            } else {
+                newQuestion();
+            }
+        }
+
+        function updateProgress() {
+            const progress = ((currentQuestion - 1) / TOTAL_QUESTIONS) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        function updateTime() {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            document.getElementById('timeDisplay').textContent = elapsed + 's';
+        }
+
+        function showSummary() {
+            if (timerInterval) clearInterval(timerInterval);
+            
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('summary').classList.add('show');
+            document.querySelector('.stats').classList.add('show-score');
+            
+            document.getElementById('currentQuestion').textContent = TOTAL_QUESTIONS;
+
+            const totalTime = Math.floor((Date.now() - startTime) / 1000);
+            const avgTime = Math.floor(totalTime / TOTAL_QUESTIONS);
+            const percentage = Math.round((score / TOTAL_QUESTIONS) * 100);
+
+            document.getElementById('finalScore').textContent = `${score}/${TOTAL_QUESTIONS}`;
+            document.getElementById('scorePercentage').textContent = `${percentage}% de réussite`;
+            document.getElementById('totalTime').textContent = totalTime + 's';
+            document.getElementById('avgTime').textContent = avgTime + 's';
+
+            let encouragement = '';
+            if (percentage === 100) {
+                encouragement = '🌟 Parfait ! Vous maîtrisez ce test.';
+            } else if (percentage >= 80) {
+                encouragement = '👏 Très bien ! Continuez à vous entraîner.';
+            } else if (percentage >= 60) {
+                encouragement = '💪 Bien ! Des progrès encore possibles.';
+            } else {
+                encouragement = '📚 Continuez vos entraînements pour progresser.';
+            }
+            document.getElementById('encouragement').textContent = encouragement;
+
+            displayAnswersRecap();
+        }
+
+        function displayAnswersRecap() {
+            const recapDiv = document.getElementById('answersRecap');
+            let html = '<h3 style="text-align: left; margin-bottom: 15px; color: #333;">Détail des réponses</h3>';
+
+            answersHistory.forEach((answer) => {
+                const isCorrect = answer.isCorrect;
+                const userChoiceClass = isCorrect ? 'user correct' : 'user incorrect';
+                
+                html += `
+                    <div class="answer-row">
+                        <div class="answer-num">#${answer.question}</div>
+                        <div class="answer-operations">${answer.operation1} | ${answer.operation2}</div>
+                        <div class="answer-choices">
+                            <div class="choice ${userChoiceClass}">
+                                ${answer.userAnswer}
+                            </div>
+                            ${!isCorrect ? `<div class="choice correct">${answer.correctAnswer}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+
+            recapDiv.innerHTML = html;
+        }
+
+        // ===== FONCTIONS TEST 3 (Mémoire des Mots) =====
+        
+        let maxTimeSeconds = 0;
+        let maxQuestionsTest3 = 10;
+        
+        async function startTest3(value, mode) {
+            test3Mode = mode;
+            currentQuestion = 1;
+            score = 0;
+            test3Answers = [];
+            startTime = Date.now();
+            userAnswer3 = null;
+            
+            if (mode === 'questions') {
+                TOTAL_QUESTIONS = value;
+                test3TimeLimit = 999999;
+                document.getElementById('questionsSeparator').style.display = 'inline';
+                document.getElementById('totalQuestions').style.display = 'inline';
+                document.getElementById('totalQuestions').textContent = value;
+            } else if (mode === 'time') {
+                test3TimeLimit = value;
+                test3TimeRemaining = value;
+                TOTAL_QUESTIONS = 9999;
+                document.getElementById('questionsSeparator').style.display = 'none';
+                document.getElementById('totalQuestions').style.display = 'none';
+            }
+            
+            document.getElementById('screen12').style.display = 'block';
+            
+            try {
+                const data = test3ThemesData;
+                test3ThemesList = Object.keys(data.themes);
+                
+                clearInterval(timerInterval);
+                if (mode === 'time') {
+                    timerInterval = setInterval(() => updateCountdownTimer3(), 1000);
+                    document.getElementById('timeDisplay').textContent = formatSeconds(test3TimeRemaining);
+                } else {
+                    test3ElapsedTime = 0;
+                    document.getElementById('timeDisplay').textContent = '0s';
+                    timerInterval = setInterval(() => updateElapsedTimer3(), 1000);
+                }
+                document.getElementById('currentQuestion').textContent = currentQuestion;
+                document.getElementById('correctCount').textContent = score;
+                document.getElementById('correctCount').style.display = 'inline';
+                
+                newQuestion3(data);
+            } catch (error) {
+                console.error('Erreur chargement thèmes:', error);
+                alert('Erreur lors du chargement des thèmes');
+            }
+        }
+        
+        function updateElapsedTimer3() {
+            test3ElapsedTime++;
+            const displayText = formatSeconds(test3ElapsedTime);
+            document.getElementById('timeDisplay').textContent = displayText;
+        }
+        
+        function updateCountdownTimer3() {
+            if (test3TimeRemaining > 0) {
+                test3TimeRemaining--;
+            }
+            
+            const displayText = formatSeconds(test3TimeRemaining);
+            document.getElementById('timeDisplay').textContent = displayText;
+            
+            if (test3TimeRemaining <= 0) {
+                clearInterval(timerInterval);
+                endTest3();
+            }
+        }
+        
+        function updateCountdownTimer() {
+        }
+        
+        function formatSeconds(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            if (mins > 0) {
+                return `${mins}m ${secs}s`;
+            }
+            return `${secs}s`;
+        }
+
+        async function newQuestion3(data) {
+            test3Themes = [];
+            const themesCopy = [...test3ThemesList];
+            for (let i = 0; i < 3; i++) {
+                const randomIdx = Math.floor(Math.random() * themesCopy.length);
+                test3Themes.push(themesCopy[randomIdx]);
+                themesCopy.splice(randomIdx, 1);
+            }
+
+            const correctWords = test3Themes.map(theme => {
+                const words = data.themes[theme];
+                return words[Math.floor(Math.random() * words.length)];
+            });
+            
+            test3CorrectCount = Math.floor(Math.random() * 4);
+            
+            const displayWords = [];
+            
+            test3CorrectPositions = new Set();
+            if (test3CorrectCount > 0) {
+                const positions = [0, 1, 2];
+                for (let i = 0; i < test3CorrectCount; i++) {
+                    const randomIdx = Math.floor(Math.random() * positions.length);
+                    test3CorrectPositions.add(positions[randomIdx]);
+                    positions.splice(randomIdx, 1);
+                }
+            }
+            
+            for (let i = 0; i < 3; i++) {
+                if (test3CorrectPositions.has(i)) {
+                    displayWords.push(correctWords[i]);
+                } else {
+                    const randomTheme = test3ThemesList[Math.floor(Math.random() * test3ThemesList.length)];
+                    const words = data.themes[randomTheme];
+                    let randomWord;
+                    do {
+                        randomWord = words[Math.floor(Math.random() * words.length)];
+                    } while (correctWords.includes(randomWord) || displayWords.includes(randomWord));
+                    displayWords.push(randomWord);
+                }
+            }
+            
+            test3Words = displayWords;
+            
+            const rulesHtml = test3Themes.join(' — ');
+            document.getElementById('rulesDisplay').textContent = rulesHtml;
+            
+            userAnswer3 = null;
+            document.getElementById('screen12').style.display = 'none';
+            document.getElementById('screen11').style.display = 'block';
+            
+            showScreen(11);
+            document.getElementById('currentQuestion').textContent = currentQuestion;
+        }
+
+        function goToScreen12() {
+            const wordsHtml = test3Words.map(w => `<div style="min-width: 100px; padding: 15px; background: white; border-radius: 6px; border: 2px solid #999;">${w}</div>`).join('');
+            document.getElementById('wordsDisplay').innerHTML = wordsHtml;
+            
+            document.querySelectorAll('#screen12 .btn-answer').forEach(btn => {
+                btn.classList.remove('selected');
+                btn.style.opacity = '1';
+            });
+            
+            document.getElementById('nextBtn3').style.display = 'none';
+            
+            document.getElementById('screen11').style.display = 'none';
+            document.getElementById('screen12').style.display = 'block';
+            
+            showScreen(12);
+        }
+
+        function selectAnswer3(answer) {
+            userAnswer3 = answer;
+            document.querySelectorAll('#screen12 .btn-answer').forEach((btn) => {
+                btn.classList.remove('active');
+                if (parseInt(btn.textContent) === answer) btn.classList.add('active');
+            });
+            document.getElementById('nextBtn3').style.display = 'block';
+        }
+
+        async function nextQuestion3() {
+            if (userAnswer3 === null) return;
+
+            const isCorrect = userAnswer3 === test3CorrectCount;
+            if (isCorrect) score++;
+
+            test3Answers.push({
+                question: currentQuestion,
+                themes: test3Themes,
+                words: test3Words,
+                correctCount: test3CorrectCount,
+                userAnswer: userAnswer3,
+                isCorrect: isCorrect,
+                correctPositions: Array.from(test3CorrectPositions)
+            });
+
+            currentQuestion++;
+            document.getElementById('correctCount').textContent = score;
+
+            if (currentQuestion > TOTAL_QUESTIONS) {
+                endTest3();
+            } else {
+                const data = test3ThemesData;
+                newQuestion3(data);
+            }
+        }
+
+        function endTest3() {
+            clearInterval(timerInterval);
+            document.querySelector('.stats').classList.add('show-score');
+            document.getElementById('summary').classList.add('show');
+            document.getElementById('screen11').style.display = 'none';
+            document.getElementById('screen12').style.display = 'none';
+            
+            const totalAnswers = test3Answers.length;
+            
+            if (test3Mode === 'questions') {
+                document.getElementById('finalScore').textContent = `${score}/${totalAnswers} réponses correctes`;
+                document.getElementById('scorePercentage').textContent = '';
+                document.getElementById('totalTime').textContent = `Temps total: ${formatSeconds(test3ElapsedTime)}`;
+                document.getElementById('avgTime').textContent = `${totalAnswers} questions`;
+            } else if (test3Mode === 'time') {
+                const chosenTime = Math.floor(test3TimeLimit / 60);
+                const timeDisplay = chosenTime === 3 ? '3 minutes' : '9 minutes';
+                document.getElementById('finalScore').textContent = `${score}/${totalAnswers} réponses correctes`;
+                document.getElementById('scorePercentage').textContent = `en ${timeDisplay}`;
+                document.getElementById('totalTime').textContent = `Durée: ${timeDisplay}`;
+                document.getElementById('avgTime').textContent = `${totalAnswers} réponses données`;
+            }
+
+            let encouragement = '';
+            if (totalAnswers > 0) {
+                const percentage = Math.round((score / totalAnswers) * 100);
+                if (percentage === 100) {
+                    encouragement = '🌟 Parfait ! Vous maîtrisez ce test.';
+                } else if (percentage >= 80) {
+                    encouragement = '👏 Très bien ! Continuez à vous entraîner.';
+                } else if (percentage >= 60) {
+                    encouragement = '💪 Bien ! Des progrès encore possibles.';
+                } else {
+                    encouragement = '📚 Continuez vos entraînements pour progresser.';
+                }
+            }
+            document.getElementById('encouragement').textContent = encouragement;
+
+            displayTest3Recap();
+        }
+
+        function displayTest3Recap() {
+            const recapDiv = document.getElementById('answersRecap');
+            let html = '<h3 style="text-align: center; margin-bottom: 30px; color: #333; font-size: 22px;">Détail des réponses</h3>';
+
+            test3Answers.forEach((answer, idx) => {
+                const isCorrect = answer.isCorrect;
+                const correctPosSet = new Set(answer.correctPositions);
+                
+                html += `
+                    <div style="margin-bottom: 40px; padding: 20px; background: white; border-radius: 8px; border: 2px solid #ddd;">
+                        <div style="text-align: center; margin-bottom: 20px; font-weight: bold; color: #333; font-size: 16px;">Question #${answer.question}</div>
+                        
+                        <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 3px;">
+                            ${answer.themes.map((theme, i) => {
+                                const isCorrectPair = correctPosSet.has(i);
+                                const borderStyle = isCorrectPair ? '3px solid #4CAF50' : '2px solid #ccc';
+                                return `<div style="min-width: 140px; padding: 15px; background: #f9f9f9; border-radius: 6px; text-align: center; font-weight: bold; font-size: 14px; border: ${borderStyle};">${theme}</div>`;
+                            }).join('')}
+                        </div>
+                        
+                        <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 20px;">
+                            ${answer.words.map((word, i) => {
+                                const isCorrectPair = correctPosSet.has(i);
+                                const borderStyle = isCorrectPair ? '3px solid #4CAF50' : '2px solid #ccc';
+                                const bgColor = isCorrectPair ? '#e8f5e9' : 'white';
+                                return `<div style="min-width: 140px; padding: 15px; background: ${bgColor}; border-radius: 6px; text-align: center; font-size: 14px; border: ${borderStyle};">${word}</div>`;
+                            }).join('')}
+                        </div>
+                        
+                        <div style="display: flex; justify-content: center; gap: 40px; align-items: center;">
+                            <div style="text-align: center;">
+                                <div style="font-size: 12px; color: #666; margin-bottom: 8px;">Votre réponse</div>
+                                <div style="padding: 12px 25px; background: ${isCorrect ? '#d4edda' : '#f8d7da'}; border-radius: 6px; border: 2px solid ${isCorrect ? '#28a745' : '#dc3545'}; min-width: 60px; text-align: center; font-weight: bold; font-size: 20px;">${answer.userAnswer}</div>
+                            </div>
+                            ${!isCorrect ? `
+                                <div style="text-align: center;">
+                                    <div style="font-size: 12px; color: #666; margin-bottom: 8px;">Bonne réponse</div>
+                                    <div style="padding: 12px 25px; background: #d4edda; border-radius: 6px; border: 2px solid #28a745; min-width: 60px; text-align: center; font-weight: bold; font-size: 20px;">${answer.correctCount}</div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+
+            recapDiv.innerHTML = html;
+        }
+
+        // ===== FONCTIONS TEST 4 (Raisonnement) =====
+
+        function startTest4(value, mode) {
+            test4Mode = mode;
+            currentQuestion = 1;
+            score = 0;
+            test4Answers = [];
+            startTime = Date.now();
+            userAnswer4 = null;
+            
+            if (mode === 'questions') {
+                TOTAL_QUESTIONS = value;
+                test4TimeLimit = 999999;
+                document.getElementById('questionsSeparator').style.display = 'inline';
+                document.getElementById('totalQuestions').style.display = 'inline';
+                document.getElementById('totalQuestions').textContent = value;
+            } else if (mode === 'time') {
+                test4TimeLimit = value;
+                test4TimeRemaining = value;
+                TOTAL_QUESTIONS = 9999;
+                document.getElementById('questionsSeparator').style.display = 'none';
+                document.getElementById('totalQuestions').style.display = 'none';
+            }
+            
+            clearInterval(timerInterval);
+            if (mode === 'time') {
+                timerInterval = setInterval(() => updateCountdownTimer4(), 1000);
+                document.getElementById('timeDisplay').textContent = formatSeconds(test4TimeRemaining);
+            } else {
+                test4ElapsedTime = 0;
+                document.getElementById('timeDisplay').textContent = '0s';
+                timerInterval = setInterval(() => updateElapsedTimer4(), 1000);
+            }
+            
+            document.getElementById('currentQuestion').textContent = currentQuestion;
+            document.getElementById('correctCount').textContent = score;
+            document.getElementById('correctCount').style.display = 'inline';
+            
+            newQuestion4();
+        }
+
+        function updateElapsedTimer4() {
+            test4ElapsedTime++;
+            document.getElementById('timeDisplay').textContent = formatSeconds(test4ElapsedTime);
+        }
+
+        function updateCountdownTimer4() {
+            if (test4TimeRemaining > 0) {
+                test4TimeRemaining--;
+            }
+            document.getElementById('timeDisplay').textContent = formatSeconds(test4TimeRemaining);
+            if (test4TimeRemaining <= 0) {
+                clearInterval(timerInterval);
+                endTest4();
+            }
+        }
+
+        function generateReasoningQuestion() {
+            const themeKeys = Object.keys(test4Data.themes);
+            const themeKey = themeKeys[Math.floor(Math.random() * themeKeys.length)];
+            const themeElements = test4Data.themes[themeKey];
+            
+            const shuffled = [...themeElements].sort(() => Math.random() - 0.5);
+            const elements = shuffled.slice(0, 3);
+            const [A, B, C] = elements;
+            
+            const attribut = test4Data.attributs[Math.floor(Math.random() * test4Data.attributs.length)];
+            
+            const config = Math.floor(Math.random() * 4) + 1;
+            
+            const askMax = Math.random() < 0.5;
+            
+            let premise1, premise2, order, correctAnswer;
+            
+            const useSameComparative = Math.random() < 0.5;
+            
+            const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1);
+            
+            switch(config) {
+                case 1:
+                    if (useSameComparative) {
+                        premise1 = `${capitalize(A)} est plus ${attribut.positif} que ${B}`;
+                        premise2 = `${capitalize(B)} est plus ${attribut.positif} que ${C}`;
+                    } else {
+                        premise1 = `${capitalize(A)} est plus ${attribut.positif} que ${B}`;
+                        premise2 = `${capitalize(C)} est moins ${attribut.positif} que ${B}`;
+                    }
+                    order = [A, B, C];
+                    break;
+                case 2:
+                    if (useSameComparative) {
+                        premise1 = `${capitalize(A)} est moins ${attribut.positif} que ${B}`;
+                        premise2 = `${capitalize(B)} est moins ${attribut.positif} que ${C}`;
+                    } else {
+                        premise1 = `${capitalize(A)} est moins ${attribut.positif} que ${B}`;
+                        premise2 = `${capitalize(C)} est plus ${attribut.positif} que ${B}`;
+                    }
+                    order = [C, B, A];
+                    break;
+                case 3:
+                    premise1 = `${capitalize(A)} est plus ${attribut.positif} que ${B}`;
+                    premise2 = `${capitalize(C)} est moins ${attribut.positif} que ${B}`;
+                    order = [A, B, C];
+                    break;
+                case 4:
+                    premise1 = `${capitalize(A)} est moins ${attribut.positif} que ${B}`;
+                    premise2 = `${capitalize(C)} est plus ${attribut.positif} que ${B}`;
+                    order = [C, B, A];
+                    break;
+            }
+            
+            if (askMax) {
+                correctAnswer = order[0];
+            } else {
+                correctAnswer = order[2];
+            }
+            
+            const isPersonne = themeKey === 'personnes';
+            const questionPrefix = isPersonne ? 'Qui est' : 'Quel est';
+            const questionAttr = askMax ? attribut.questionPositif : attribut.questionNegatif;
+            const question = `${questionPrefix} ${questionAttr} ?`;
+            
+            const choices = [...elements].sort(() => Math.random() - 0.5);
+            
+            return {
+                premise1,
+                premise2,
+                question,
+                choices,
+                correctAnswer,
+                order,
+                attribut,
+                askMax
+            };
+        }
+
+        function newQuestion4() {
+            currentTest4Question = generateReasoningQuestion();
+            
+            document.getElementById('premise1').textContent = currentTest4Question.premise1;
+            document.getElementById('premise2').textContent = currentTest4Question.premise2;
+            document.getElementById('reasoningQuestion').textContent = currentTest4Question.question;
+            
+            const choicesContainer = document.getElementById('reasoningChoices');
+            choicesContainer.innerHTML = '';
+            
+            currentTest4Question.choices.forEach((choice, index) => {
+                const btn = document.createElement('div');
+                btn.className = 'reasoning-choice';
+                btn.textContent = choice.charAt(0).toUpperCase() + choice.slice(1);
+                btn.onclick = () => selectAnswer4(choice, btn);
+                choicesContainer.appendChild(btn);
+            });
+            
+            userAnswer4 = null;
+            document.getElementById('nextBtn4').style.display = 'none';
+            
+            showScreen(14);
+            document.getElementById('currentQuestion').textContent = currentQuestion;
+        }
+
+        function selectAnswer4(answer, btn) {
+            userAnswer4 = answer;
+            
+            document.querySelectorAll('.reasoning-choice').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            
+            document.getElementById('nextBtn4').style.display = 'block';
+        }
+
+        function nextQuestion4() {
+            if (userAnswer4 === null) return;
+            
+            const isCorrect = userAnswer4 === currentTest4Question.correctAnswer;
+            if (isCorrect) {
+                score++;
+                document.getElementById('correctCount').textContent = score;
+            }
+            
+            test4Answers.push({
+                question: currentQuestion,
+                premise1: currentTest4Question.premise1,
+                premise2: currentTest4Question.premise2,
+                questionText: currentTest4Question.question,
+                choices: currentTest4Question.choices,
+                userAnswer: userAnswer4,
+                correctAnswer: currentTest4Question.correctAnswer,
+                isCorrect: isCorrect,
+                order: currentTest4Question.order,
+                askMax: currentTest4Question.askMax
+            });
+            
+            currentQuestion++;
+            
+            if (currentQuestion > TOTAL_QUESTIONS) {
+                endTest4();
+            } else {
+                newQuestion4();
+            }
+        }
+
+        function endTest4() {
+            clearInterval(timerInterval);
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.querySelector('.stats').classList.add('show-score');
+            document.getElementById('summary').classList.add('show');
+            
+            const totalAnswers = test4Answers.length;
+            
+            if (test4Mode === 'questions') {
+                document.getElementById('finalScore').textContent = `${score}/${totalAnswers}`;
+                const percentage = Math.round((score / totalAnswers) * 100);
+                document.getElementById('scorePercentage').textContent = `${percentage}% de réussite`;
+                document.getElementById('totalTime').textContent = formatSeconds(test4ElapsedTime);
+                document.getElementById('avgTime').textContent = `${Math.round(test4ElapsedTime / totalAnswers)}s`;
+            } else if (test4Mode === 'time') {
+                const chosenTime = Math.floor(test4TimeLimit / 60);
+                const timeDisplay = chosenTime === 3 ? '3 minutes' : '9 minutes';
+                document.getElementById('finalScore').textContent = `${score}/${totalAnswers}`;
+                const percentage = totalAnswers > 0 ? Math.round((score / totalAnswers) * 100) : 0;
+                document.getElementById('scorePercentage').textContent = `${percentage}% de réussite en ${timeDisplay}`;
+                document.getElementById('totalTime').textContent = timeDisplay;
+                document.getElementById('avgTime').textContent = `${totalAnswers} questions`;
+            }
+            
+            let encouragement = '';
+            if (totalAnswers > 0) {
+                const percentage = Math.round((score / totalAnswers) * 100);
+                if (percentage === 100) {
+                    encouragement = '🌟 Parfait ! Vous maîtrisez ce test.';
+                } else if (percentage >= 80) {
+                    encouragement = '👏 Très bien ! Continuez à vous entraîner.';
+                } else if (percentage >= 60) {
+                    encouragement = '💪 Bien ! Des progrès encore possibles.';
+                } else {
+                    encouragement = '📚 Continuez vos entraînements pour progresser.';
+                }
+            }
+            document.getElementById('encouragement').textContent = encouragement;
+            
+            displayTest4Recap();
+        }
+
+        function displayTest4Recap() {
+            const recapDiv = document.getElementById('answersRecap');
+            let html = '<h3 style="text-align: center; margin-bottom: 30px; color: #333; font-size: 22px;">Détail des réponses</h3>';
+
+            test4Answers.forEach((answer) => {
+                const isCorrect = answer.isCorrect;
+                const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1);
+                
+                const orderExplanation = answer.askMax 
+                    ? `${capitalize(answer.order[0])} > ${capitalize(answer.order[1])} > ${capitalize(answer.order[2])}`
+                    : `${capitalize(answer.order[2])} < ${capitalize(answer.order[1])} < ${capitalize(answer.order[0])}`;
+                
+                html += `
+                    <div style="margin-bottom: 30px; padding: 20px; background: white; border-radius: 8px; border: 2px solid #ddd;">
+                        <div style="text-align: center; margin-bottom: 15px; font-weight: bold; color: #333; font-size: 16px;">Question #${answer.question}</div>
+                        
+                        <div style="background: #f5f5f5; padding: 15px; border-radius: 6px; margin-bottom: 10px; border-left: 3px solid #667eea;">
+                            <div style="font-size: 14px; color: #333; margin-bottom: 5px;">${answer.premise1}</div>
+                            <div style="font-size: 14px; color: #333;">${answer.premise2}</div>
+                        </div>
+                        
+                        <div style="background: #e8f4f8; padding: 12px; border-radius: 6px; margin-bottom: 15px; border-left: 3px solid #17a2b8; font-weight: bold; color: #333;">
+                            ${answer.questionText}
+                        </div>
+                        
+                        <div style="text-align: center; margin-bottom: 15px; font-size: 12px; color: #666;">
+                            Ordre : ${orderExplanation}
+                        </div>
+                        
+                        <div style="display: flex; justify-content: center; gap: 30px; align-items: center;">
+                            <div style="text-align: center;">
+                                <div style="font-size: 12px; color: #666; margin-bottom: 8px;">Votre réponse</div>
+                                <div style="padding: 12px 20px; background: ${isCorrect ? '#d4edda' : '#f8d7da'}; border-radius: 6px; border: 2px solid ${isCorrect ? '#28a745' : '#dc3545'}; min-width: 100px; text-align: center; font-weight: bold; font-size: 16px;">
+                                    ${capitalize(answer.userAnswer)}
+                                </div>
+                            </div>
+                            ${!isCorrect ? `
+                                <div style="text-align: center;">
+                                    <div style="font-size: 12px; color: #666; margin-bottom: 8px;">Bonne réponse</div>
+                                    <div style="padding: 12px 20px; background: #d4edda; border-radius: 6px; border: 2px solid #28a745; min-width: 100px; text-align: center; font-weight: bold; font-size: 16px;">
+                                        ${capitalize(answer.correctAnswer)}
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+
+            recapDiv.innerHTML = html;
+        }
+
+        // ===== FONCTIONS TEST 5 (Comparaison de chaînes) =====
+
+        function startTest5(value, mode) {
+            test5Mode = mode;
+            currentQuestion = 1;
+            score = 0;
+            test5Answers = [];
+            startTime = Date.now();
+            userAnswer5 = null;
+            
+            if (mode === 'questions') {
+                TOTAL_QUESTIONS = value;
+                test5TimeLimit = 999999;
+                document.getElementById('questionsSeparator').style.display = 'inline';
+                document.getElementById('totalQuestions').style.display = 'inline';
+                document.getElementById('totalQuestions').textContent = value;
+            } else if (mode === 'time') {
+                test5TimeLimit = value;
+                test5TimeRemaining = value;
+                TOTAL_QUESTIONS = 9999;
+                document.getElementById('questionsSeparator').style.display = 'none';
+                document.getElementById('totalQuestions').style.display = 'none';
+            }
+            
+            clearInterval(timerInterval);
+            if (mode === 'time') {
+                timerInterval = setInterval(() => updateCountdownTimer5(), 1000);
+                document.getElementById('timeDisplay').textContent = formatSeconds(test5TimeRemaining);
+            } else {
+                test5ElapsedTime = 0;
+                document.getElementById('timeDisplay').textContent = '0s';
+                timerInterval = setInterval(() => updateElapsedTimer5(), 1000);
+            }
+            
+            document.getElementById('currentQuestion').textContent = currentQuestion;
+            document.getElementById('correctCount').textContent = score;
+            document.getElementById('correctCount').style.display = 'inline';
+            
+            newQuestion5();
+        }
+
+        function updateElapsedTimer5() {
+            test5ElapsedTime++;
+            document.getElementById('timeDisplay').textContent = formatSeconds(test5ElapsedTime);
+        }
+
+        function updateCountdownTimer5() {
+            if (test5TimeRemaining > 0) {
+                test5TimeRemaining--;
+            }
+            document.getElementById('timeDisplay').textContent = formatSeconds(test5TimeRemaining);
+            if (test5TimeRemaining <= 0) {
+                clearInterval(timerInterval);
+                endTest5();
+            }
+        }
+
+        // Générateur de chaînes pour Test 5
+        function generateStringQuestion() {
+            const stringTypes = ['email', 'url', 'plate', 'code'];
+            const type = stringTypes[Math.floor(Math.random() * stringTypes.length)];
+            
+            let original = '';
+            
+            // Générer la chaîne originale selon le type
+            switch(type) {
+                case 'email':
+                    original = generateEmail();
+                    break;
+                case 'url':
+                    original = generateUrl();
+                    break;
+                case 'plate':
+                    original = generatePlate();
+                    break;
+                case 'code':
+                    original = generateCode();
+                    break;
+            }
+            
+            // Distribution des erreurs: ~15% pour 0 et 4, ~23% pour 1, 2, 3
+            const errorDistribution = [0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4];
+            const numErrors = errorDistribution[Math.floor(Math.random() * errorDistribution.length)];
+            
+            // Créer la copie avec des erreurs
+            const { copy, errorPositions } = createCopyWithErrors(original, numErrors);
+            
+            return {
+                original,
+                copy,
+                numErrors,
+                errorPositions,
+                type
+            };
+        }
+
+        function generateEmail() {
+            const letters = 'abcdefghijklmnopqrstuvwxyz';
+            const digits = '0123456789';
+            const domains = ['gmail.com', 'yahoo.fr', 'outlook.com', 'mail.net', 'web.org', 'pro.io', 'info.co'];
+            
+            // Générer partie locale (3-8 caractères)
+            let local = '';
+            const localLength = Math.floor(Math.random() * 6) + 3;
+            for (let i = 0; i < localLength; i++) {
+                if (Math.random() < 0.3 && i > 0) {
+                    local += digits[Math.floor(Math.random() * digits.length)];
+                } else {
+                    local += letters[Math.floor(Math.random() * letters.length)];
+                }
+            }
+            
+            const domain = domains[Math.floor(Math.random() * domains.length)];
+            return `${local}@${domain}`;
+        }
+
+        function generateUrl() {
+            const letters = 'abcdefghijklmnopqrstuvwxyz';
+            const extensions = ['.com', '.org', '.net', '.fr', '.io'];
+            
+            // Générer sous-domaine (4-8 caractères)
+            let subdomain = '';
+            const subLength = Math.floor(Math.random() * 5) + 4;
+            for (let i = 0; i < subLength; i++) {
+                subdomain += letters[Math.floor(Math.random() * letters.length)];
+            }
+            
+            const ext = extensions[Math.floor(Math.random() * extensions.length)];
+            return `http://www.${subdomain}${ext}`;
+        }
+
+        function generatePlate() {
+            const letters = 'ABCDEFGHJKLMNPRSTUVWXYZ';
+            const digits = '0123456789';
+            
+            // Formats variés de plaques/codes
+            const formats = [
+                () => `${randomChars(letters, 3)} ${randomChars(digits, 3)}`,
+                () => `${randomChars(letters, 2)}-${randomChars(digits, 3)}-${randomChars(letters, 2)}`,
+                () => `${randomChars(digits, 4)} ${randomChars(letters, 2)}`,
+                () => `${randomChars(letters, 1)}${randomChars(digits, 3)}${randomChars(letters, 3)}`
+            ];
+            
+            return formats[Math.floor(Math.random() * formats.length)]();
+        }
+
+        function generateCode() {
+            const letters = 'ABCDEFGHJKLMNPRSTUVWXYZ';
+            const lowLetters = 'abcdefghjklmnprstuvwxyz';
+            const digits = '0123456789';
+            
+            // Formats variés de codes
+            const formats = [
+                () => `REF-${randomChars(digits, 4)}-${randomChars(letters, 2)}`,
+                () => `${randomChars(lowLetters, 3)}${randomChars(digits, 3)}#${randomChars(lowLetters, 2)}`,
+                () => `ID:${randomChars(letters, 2)}${randomChars(digits, 5)}`,
+                () => `${randomChars(digits, 2)}/${randomChars(letters, 3)}/${randomChars(digits, 3)}`
+            ];
+            
+            return formats[Math.floor(Math.random() * formats.length)]();
+        }
+
+        function randomChars(charset, length) {
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                result += charset[Math.floor(Math.random() * charset.length)];
+            }
+            return result;
+        }
+
+        function createCopyWithErrors(original, numErrors) {
+            const letters = 'abcdefghijklmnopqrstuvwxyz';
+            const upperLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            const digits = '0123456789';
+            
+            let copy = original.split('');
+            const errorPositions = [];
+            
+            // Trouver les positions modifiables (pas les caractères spéciaux fixes)
+            const modifiablePositions = [];
+            for (let i = 0; i < original.length; i++) {
+                const char = original[i];
+                if (/[a-zA-Z0-9]/.test(char)) {
+                    modifiablePositions.push(i);
+                }
+            }
+            
+            // Mélanger et prendre numErrors positions
+            const shuffled = [...modifiablePositions].sort(() => Math.random() - 0.5);
+            const positionsToChange = shuffled.slice(0, Math.min(numErrors, modifiablePositions.length));
+            
+            positionsToChange.forEach(pos => {
+                const originalChar = original[pos];
+                let newChar;
+                
+                if (/[a-z]/.test(originalChar)) {
+                    // Remplacer par une autre lettre minuscule
+                    do {
+                        newChar = letters[Math.floor(Math.random() * letters.length)];
+                    } while (newChar === originalChar);
+                } else if (/[A-Z]/.test(originalChar)) {
+                    // Remplacer par une autre lettre majuscule
+                    do {
+                        newChar = upperLetters[Math.floor(Math.random() * upperLetters.length)];
+                    } while (newChar === originalChar);
+                } else if (/[0-9]/.test(originalChar)) {
+                    // Remplacer par un autre chiffre
+                    do {
+                        newChar = digits[Math.floor(Math.random() * digits.length)];
+                    } while (newChar === originalChar);
+                }
+                
+                copy[pos] = newChar;
+                errorPositions.push(pos);
+            });
+            
+            return {
+                copy: copy.join(''),
+                errorPositions: errorPositions.sort((a, b) => a - b)
+            };
+        }
+
+        function newQuestion5() {
+            currentTest5Question = generateStringQuestion();
+            
+            document.getElementById('originalString').textContent = currentTest5Question.original;
+            document.getElementById('copyString').textContent = currentTest5Question.copy;
+            
+            showScreen(16);
+            document.getElementById('currentQuestion').textContent = currentQuestion;
+        }
+
+        function goToScreen17() {
+            // Réinitialiser les boutons
+            document.querySelectorAll('.error-count-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            
+            userAnswer5 = null;
+            document.getElementById('nextBtn5').style.display = 'none';
+            
+            showScreen(17);
+        }
+
+        function selectAnswer5(answer) {
+            userAnswer5 = answer;
+            
+            document.querySelectorAll('.error-count-btn').forEach(btn => {
+                btn.classList.remove('selected');
+                if (parseInt(btn.textContent) === answer) {
+                    btn.classList.add('selected');
+                }
+            });
+            
+            document.getElementById('nextBtn5').style.display = 'block';
+        }
+
+        function nextQuestion5() {
+            if (userAnswer5 === null) return;
+            
+            const isCorrect = userAnswer5 === currentTest5Question.numErrors;
+            if (isCorrect) {
+                score++;
+                document.getElementById('correctCount').textContent = score;
+            }
+            
+            test5Answers.push({
+                question: currentQuestion,
+                original: currentTest5Question.original,
+                copy: currentTest5Question.copy,
+                numErrors: currentTest5Question.numErrors,
+                errorPositions: currentTest5Question.errorPositions,
+                userAnswer: userAnswer5,
+                isCorrect: isCorrect
+            });
+            
+            currentQuestion++;
+            
+            if (currentQuestion > TOTAL_QUESTIONS) {
+                endTest5();
+            } else {
+                newQuestion5();
+            }
+        }
+
+        function endTest5() {
+            clearInterval(timerInterval);
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.querySelector('.stats').classList.add('show-score');
+            document.getElementById('summary').classList.add('show');
+            
+            const totalAnswers = test5Answers.length;
+            
+            if (test5Mode === 'questions') {
+                document.getElementById('finalScore').textContent = `${score}/${totalAnswers}`;
+                const percentage = Math.round((score / totalAnswers) * 100);
+                document.getElementById('scorePercentage').textContent = `${percentage}% de réussite`;
+                document.getElementById('totalTime').textContent = formatSeconds(test5ElapsedTime);
+                document.getElementById('avgTime').textContent = `${Math.round(test5ElapsedTime / totalAnswers)}s`;
+            } else if (test5Mode === 'time') {
+                const chosenTime = Math.floor(test5TimeLimit / 60);
+                const timeDisplay = chosenTime === 3 ? '3 minutes' : '9 minutes';
+                document.getElementById('finalScore').textContent = `${score}/${totalAnswers}`;
+                const percentage = totalAnswers > 0 ? Math.round((score / totalAnswers) * 100) : 0;
+                document.getElementById('scorePercentage').textContent = `${percentage}% de réussite en ${timeDisplay}`;
+                document.getElementById('totalTime').textContent = timeDisplay;
+                document.getElementById('avgTime').textContent = `${totalAnswers} questions`;
+            }
+            
+            let encouragement = '';
+            if (totalAnswers > 0) {
+                const percentage = Math.round((score / totalAnswers) * 100);
+                if (percentage === 100) {
+                    encouragement = '🌟 Parfait ! Vous maîtrisez ce test.';
+                } else if (percentage >= 80) {
+                    encouragement = '👏 Très bien ! Continuez à vous entraîner.';
+                } else if (percentage >= 60) {
+                    encouragement = '💪 Bien ! Des progrès encore possibles.';
+                } else {
+                    encouragement = '📚 Continuez vos entraînements pour progresser.';
+                }
+            }
+            document.getElementById('encouragement').textContent = encouragement;
+            
+            displayTest5Recap();
+        }
+
+        function displayTest5Recap() {
+            const recapDiv = document.getElementById('answersRecap');
+            let html = '<h3 style="text-align: center; margin-bottom: 30px; color: #333; font-size: 22px;">Détail des réponses</h3>';
+
+            test5Answers.forEach((answer) => {
+                const isCorrect = answer.isCorrect;
+                
+                // Créer une version avec les erreurs surlignées
+                let highlightedCopy = '';
+                for (let i = 0; i < answer.copy.length; i++) {
+                    if (answer.errorPositions.includes(i)) {
+                        highlightedCopy += `<span class="char-diff">${answer.copy[i]}</span>`;
+                    } else {
+                        highlightedCopy += answer.copy[i];
+                    }
+                }
+                
+                html += `
+                    <div style="margin-bottom: 30px; padding: 20px; background: white; border-radius: 8px; border: 2px solid #ddd;">
+                        <div style="text-align: center; margin-bottom: 15px; font-weight: bold; color: #333; font-size: 16px;">Question #${answer.question}</div>
+                        
+                        <div style="background: #f0fff0; padding: 15px; border-radius: 6px; margin-bottom: 10px; border-left: 3px solid #28a745;">
+                            <div style="font-size: 11px; color: #666; margin-bottom: 5px; text-transform: uppercase;">Originale</div>
+                            <div style="font-family: 'Courier New', monospace; font-size: 16px; color: #333; letter-spacing: 1px;">${answer.original}</div>
+                        </div>
+                        
+                        <div style="background: #fff8f0; padding: 15px; border-radius: 6px; margin-bottom: 15px; border-left: 3px solid #fd7e14;">
+                            <div style="font-size: 11px; color: #666; margin-bottom: 5px; text-transform: uppercase;">Copie (erreurs surlignées)</div>
+                            <div style="font-family: 'Courier New', monospace; font-size: 16px; color: #333; letter-spacing: 1px;">${highlightedCopy}</div>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: center; gap: 30px; align-items: center;">
+                            <div style="text-align: center;">
+                                <div style="font-size: 12px; color: #666; margin-bottom: 8px;">Votre réponse</div>
+                                <div style="padding: 12px 20px; background: ${isCorrect ? '#d4edda' : '#f8d7da'}; border-radius: 6px; border: 2px solid ${isCorrect ? '#28a745' : '#dc3545'}; min-width: 60px; text-align: center; font-weight: bold; font-size: 20px;">
+                                    ${answer.userAnswer}
+                                </div>
+                            </div>
+                            ${!isCorrect ? `
+                                <div style="text-align: center;">
+                                    <div style="font-size: 12px; color: #666; margin-bottom: 8px;">Bonne réponse</div>
+                                    <div style="padding: 12px 20px; background: #d4edda; border-radius: 6px; border: 2px solid #28a745; min-width: 60px; text-align: center; font-weight: bold; font-size: 20px;">
+                                        ${answer.numErrors}
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+
+            recapDiv.innerHTML = html;
+        }
+
+        function restartTest() {
+            document.getElementById('summary').classList.remove('show');
+            document.querySelector('.stats').classList.remove('show-score');
+            showScreen(0);
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 's' || e.key === 'S') selectAnswer('S');
+            if (e.key === 'i' || e.key === 'I') selectAnswer('I');
+            if (e.key === 'e' || e.key === 'E') selectAnswer('E');
+            if (e.key === 'Enter') {
+                if (document.getElementById('nextBtn').style.display !== 'none') nextQuestion();
+                if (document.getElementById('operation1').textContent && !document.getElementById('operation2').textContent) goToScreen2();
+                if (document.getElementById('operation2').textContent && userAnswer === null) goToScreen3();
+            }
+        });
+
+        // Update time continuously
+        timerInterval = setInterval(updateTime, 1000);
+
+        // Show start screen on load
+        showScreen(0);
+    
+        
+        // ================ UI ET NAVIGATION ================
+        function showScreen(screenId) {
+            document.querySelectorAll('[id$="Screen"]').forEach(s => s.classList.add('hidden'));
+            document.getElementById(screenId).classList.remove('hidden');
+        }
+        
+        function goHome() {
+            showScreen('homeScreen');
+            if (timerInterval) clearInterval(timerInterval);
+        }
+        
+        function goToTestSelection() {
+            showScreen('testSelectionScreen');
+            const grid = document.getElementById('testGrid');
+            grid.innerHTML = '';
+            TESTS.forEach(test => {
+                const btn = document.createElement('div');
+                btn.className = 'menu-btn';
+                btn.innerHTML = `<h3>${test.name}</h3>`;
+                btn.onclick = () => selectTest(test.id);
+                grid.appendChild(btn);
+            });
+        }
+        
+        function selectTest(testId) {
+            currentTest = testId;
+            const test = TESTS.find(t => t.id === testId);
+            document.getElementById('difficultyTitle').textContent = test.name;
+            document.getElementById('difficultyDesc').textContent = 'Choisissez votre niveau de difficulté';
+            
+            const grid = document.getElementById('difficultyGrid');
+            grid.innerHTML = '';
+            test.difficulties.forEach(diff => {
+                const btn = document.createElement('button');
+                btn.className = 'difficulty-btn';
+                btn.textContent = diff;
+                btn.onclick = () => startTest(testId, diff);
+                grid.appendChild(btn);
+            });
+            
+            showScreen('difficultyScreen');
+        }
+        
+        function startTest(testId, difficulty) {
+            currentTest = testId;
+            currentDifficulty = difficulty;
+            currentQuestionIndex = 0;
+            score = 0;
+            answers = [];
+            
+            // Déterminer le nombre de questions ou le temps limite
+            const diffMap = {
+                '10 Questions': { questions: 10, time: 0 },
+                '20 Questions': { questions: 20, time: 0 },
+                '50 Questions': { questions: 50, time: 0 },
+                '3 minutes': { questions: 0, time: 180 },
+                '9 minutes': { questions: 0, time: 540 }
+            };
+            
+            const settings = diffMap[difficulty];
+            totalQuestions = settings.questions || 999;
+            const timeLimit = settings.time;
+            
+            startTime = Date.now();
+            if (timeLimit > 0) {
+                startTimer(timeLimit);
+            }
+            
+            generateQuestions(testId, settings.questions || 50);
+            showQuestion();
+            showScreen('testScreen');
+        }
+        
+        function generateQuestions(testId, count) {
+            testQuestions = [];
+            // TODO: Adapter la génération selon le test
+            // Pour maintenant, créer des questions démo
+            for (let i = 0; i < count; i++) {
+                testQuestions.push({
+                    question: `Question ${i + 1}`,
+                    options: ['Réponse A', 'Réponse B', 'Réponse C', 'Réponse D'],
+                    correct: Math.floor(Math.random() * 4)
+                });
+            }
+        }
+        
+        function showQuestion() {
+            if (currentQuestionIndex >= testQuestions.length) {
+                finishTest();
+                return;
+            }
+            
+            const q = testQuestions[currentQuestionIndex];
+            const progress = ((currentQuestionIndex + 1) / testQuestions.length) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+            document.getElementById('questionCounter').textContent = `Question ${currentQuestionIndex + 1}/${testQuestions.length}`;
+            
+            const content = document.getElementById('testContent');
+            content.innerHTML = `
+                <p style="font-size: 18px; margin-bottom: 20px;">${q.question}</p>
+                <div class="options" id="optionsContainer"></div>
+            `;
+            
+            const container = document.getElementById('optionsContainer');
+            q.options.forEach((opt, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.textContent = opt;
+                btn.onclick = () => selectAnswer(i);
+                container.appendChild(btn);
+            });
+            
+            document.getElementById('prevBtn').style.display = currentQuestionIndex > 0 ? 'block' : 'none';
+            document.getElementById('nextBtn').style.display = currentQuestionIndex < testQuestions.length - 1 ? 'block' : 'none';
+            document.getElementById('submitBtn').style.display = currentQuestionIndex === testQuestions.length - 1 ? 'block' : 'none';
+        }
+        
+        function selectAnswer(index) {
+            answers[currentQuestionIndex] = index;
+            const correct = testQuestions[currentQuestionIndex].correct;
+            if (index === correct) score++;
+            
+            document.querySelectorAll('.option-btn').forEach((btn, i) => {
+                btn.classList.remove('selected');
+                if (i === correct) btn.classList.add('correct');
+                if (i === index && i !== correct) btn.classList.add('incorrect');
+                if (i === index && i === correct) btn.classList.add('selected');
+            });
+        }
+        
+        function nextQuestion() {
+            if (currentQuestionIndex < testQuestions.length - 1) {
+                currentQuestionIndex++;
+                showQuestion();
+            }
+        }
+        
+        function previousQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                showQuestion();
+            }
+        }
+        
+        function submitTest() {
+            finishTest();
+        }
+        
+        function startTimer(seconds) {
+            let remaining = seconds;
+            document.getElementById('timer').textContent = formatTime(remaining);
+            
+            timerInterval = setInterval(() => {
+                remaining--;
+                document.getElementById('timer').textContent = formatTime(remaining);
+                if (remaining <= 0) {
+                    clearInterval(timerInterval);
+                    finishTest();
+                }
+            }, 1000);
+        }
+        
+        function formatTime(seconds) {
+            const m = Math.floor(seconds / 60);
+            const s = seconds % 60;
+            return `${m}:${s.toString().padStart(2, '0')}`;
+        }
+        
+        function finishTest() {
+            if (timerInterval) clearInterval(timerInterval);
+            const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+            
+            const scoreDisplay = `${score}/${testQuestions.length}\n${Math.round((score / testQuestions.length) * 100)}%`;
+            document.getElementById('scoreDisplay').innerHTML = `<div style="white-space: pre-wrap;">${scoreDisplay}</div>`;
+            document.getElementById('playerNameInput').value = '';
+            
+            // Afficher le top 3 du test
+            const leaderboard = getLeaderboard(TESTS[currentTest - 1].name, currentDifficulty);
+            const html = leaderboard.map((entry, i) => `
+                <div class="leaderboard-item place${i + 1}">
+                    <div class="medal">${['🥇', '🥈', '🥉'][i]}</div>
+                    <div>
+                        <strong>${entry.name}</strong><br>
+                        <small>${entry.score}/${entry.total} - ${formatTime(entry.time)}</small>
+                    </div>
+                </div>
+            `).join('');
+            
+            document.getElementById('leaderboardResult').innerHTML = html || '<p style="color: #999;">Aucun résultat enregistré pour cette difficulté</p>';
+            showScreen('resultsScreen');
+        }
+        
+        function saveResult() {
+            const name = document.getElementById('playerNameInput').value.trim();
+            if (!name) {
+                alert('Veuillez entrer votre nom');
+                return;
+            }
+            
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            addResult(TESTS[currentTest - 1].name, currentDifficulty, name, score, testQuestions.length, elapsed);
+            
+            alert('Score enregistré! 🎉');
+            finishTest();
+        }
+        
+        function viewLeaderboard() {
+            const content = document.getElementById('leaderboardContent');
+            let html = '';
+            
+            TESTS.forEach(test => {
+                test.difficulties.forEach(diff => {
+                    const leaderboard = getLeaderboard(test.name, diff);
+                    if (leaderboard.length > 0) {
+                        html += `<h3>${test.name} - ${diff}</h3>`;
+                        leaderboard.forEach((entry, i) => {
+                            html += `
+                                <div class="leaderboard-item place${i + 1}">
+                                    <div class="medal">${['🥇', '🥈', '🥉'][i]}</div>
+                                    <div>
+                                        <strong>${entry.name}</strong><br>
+                                        <small>${entry.score}/${entry.total} - ${formatTime(entry.time)}</small>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    }
+                });
+            });
+            
+            content.innerHTML = html || '<p style="color: #999;">Aucun résultat enregistré</p>';
+            showScreen('leaderboardScreen');
+        }
+        
+        // Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('data:text/javascript,' + encodeURIComponent(`
+                self.addEventListener('install', e => self.skipWaiting());
+                self.addEventListener('activate', e => e.waitUntil(clients.claim()));
+                self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => new Response('Offline'))));
+            `));
+        }
+    </script>
+</body>
+</html>
