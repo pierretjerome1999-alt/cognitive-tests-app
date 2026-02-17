@@ -3071,6 +3071,17 @@ function closeExitMenu() {
 
 function confirmGoHome() {
     closeExitMenu();
+    
+    // Réinitialiser TOUTES les variables du test
+    currentQuestion = 1;
+    score = 0;
+    currentTest = 1;
+    currentTest4Question = null;
+    currentTest5Question = null;
+    TOTAL_QUESTIONS = 0;
+    selectedAnswers = {};
+    userAnswers = [];
+    
     // Retourner à l'écran d'accueil (screen0)
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById('screen0').classList.add('active');
