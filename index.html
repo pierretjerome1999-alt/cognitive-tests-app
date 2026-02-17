@@ -1039,9 +1039,33 @@
             font-style: italic;
             padding: 10px;
         }
+
+    #exitButton {
+        position: fixed;
+        top: 15px;
+        left: 15px;
+        background-color: red;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        font-size: 24px;
+        cursor: pointer;
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    #exitButton:hover {
+        background-color: darkred;
+    }
+    
 </style>
 </head>
 <body>
+<button id="exitButton" onclick="openExitMenu()">✕</button>
     <button class="exit-button" onclick="showExitModal()">✕</button>
 
     <div class="modal-overlay" id="exitModal">
@@ -5194,6 +5218,47 @@
             resultsSection.insertAdjacentHTML('beforeend', leaderboardHTML);
         }
     }
+
+// Fonction pour ouvrir le menu de confirmation
+function openExitMenu() {
+    document.getElementById('exitModal').style.display = 'flex';
+}
+
+// Fonction pour fermer le menu de confirmation
+function closeExitMenu() {
+    document.getElementById('exitModal').style.display = 'none';
+}
+
+// Fonction pour revenir au menu principal
+function confirmGoHome() {
+    // Fermer le modal
+    document.getElementById('exitModal').style.display = 'none';
+    
+    // Retour à l'écran d'accueil
+    currentScreen = 'home';
+    showScreen('home');
+}
+
+// Fermer le modal si on clique en dehors
+window.onclick = function(event) {
+    var modal = document.getElementById('exitModal');
+    if (event.target == modal) {
+        modal.style.display = 'none';
+    }
+}
+
 </script>
+
+<!-- Modal de confirmation -->
+<div id="exitModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); z-index: 9999; justify-content: center; align-items: center;">
+    <div style="background-color: white; padding: 30px; border-radius: 10px; text-align: center; min-width: 300px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <h2 style="margin-top: 0; color: #333;">Voulez-vous revenir au menu principal?</h2>
+        <div style="display: flex; gap: 15px; justify-content: center; margin-top: 20px;">
+            <button onclick="closeExitMenu()" style="padding: 10px 30px; background-color: #999; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">Non</button>
+            <button onclick="confirmGoHome()" style="padding: 10px 30px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">Oui</button>
+        </div>
+    </div>
+</div>
+
 </body>
 </html>
