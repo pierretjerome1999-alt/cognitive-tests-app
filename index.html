@@ -891,9 +891,169 @@
             margin: 10px 0;
             cursor: pointer;
         }
-    </style>
+    
+        /* Bouton X - Menu principal */
+        .exit-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 50px;
+            height: 50px;
+            background: #ff4444;
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 28px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(255, 68, 68, 0.3);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .exit-button:hover {
+            background: #dd0000;
+            transform: scale(1.1);
+            box-shadow: 0 6px 16px rgba(255, 68, 68, 0.4);
+        }
+
+        .exit-button:active {
+            transform: scale(0.95);
+        }
+
+        /* Modal de confirmation */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal-dialog {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 400px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-dialog h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .modal-buttons button {
+            padding: 10px 30px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .btn-yes {
+            background: #ff4444;
+            color: white;
+        }
+
+        .btn-yes:hover {
+            background: #dd0000;
+        }
+
+        .btn-no {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-no:hover {
+            background: #d0d0d0;
+        }
+
+        /* Section Classements */
+        .leaderboard-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            text-align: left;
+        }
+
+        .leaderboard-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .leaderboard-entry {
+            padding: 10px;
+            margin: 5px 0;
+            background: white;
+            border-left: 4px solid #667eea;
+            border-radius: 4px;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .leaderboard-rank {
+            font-weight: bold;
+            color: #667eea;
+            margin-right: 10px;
+        }
+
+        .leaderboard-empty {
+            color: #999;
+            font-style: italic;
+            padding: 10px;
+        }
+</style>
 </head>
 <body>
+    <button class="exit-button" onclick="showExitModal()">✕</button>
+
+    <div class="modal-overlay" id="exitModal">
+        <div class="modal-dialog">
+            <h2>Revenir au menu principal ?</h2>
+            <div class="modal-buttons">
+                <button class="btn-yes" onclick="goToHome()">Oui</button>
+                <button class="btn-no" onclick="closeExitModal()">Non</button>
+            </div>
+        </div>
+    </div>
+
 
     <div class="container">
         <h1 id="mainTitle">📋 Choix des tests</h1>
@@ -4949,6 +5109,91 @@
         
         // Initialiser au chargement
         document.addEventListener('DOMContentLoaded', initLeaderboard);
-    </script>
+    
+    // Gestion du bouton X et du modal
+    function showExitModal() {
+        document.getElementById('exitModal').classList.add('show');
+    }
+
+    function closeExitModal() {
+        document.getElementById('exitModal').classList.remove('show');
+    }
+
+    function goToHome() {
+        closeExitModal();
+        goToTestSelection(); // Aller à l'écran d'accueil
+    }
+
+    // Fermer le modal si on clique en dehors
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('exitModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeExitModal();
+            }
+        });
+    });
+
+    // Gestion des classements avec localStorage
+    function saveResult(testType, difficulty, name, timeSeconds, correctAnswers, totalAnswers) {
+        const key = `leaderboard_${testType}_${difficulty}`;
+        let leaderboard = JSON.parse(localStorage.getItem(key) || '[]');
+        
+        // Ajouter le nouveau résultat
+        leaderboard.push({
+            name: name || 'Anonyme',
+            time: timeSeconds,
+            correct: correctAnswers,
+            total: totalAnswers,
+            date: new Date().toLocaleString('fr-FR')
+        });
+
+        // Trier par temps (ascendant) et garder seulement les 3 meilleurs
+        leaderboard.sort((a, b) => a.time - b.time);
+        leaderboard = leaderboard.slice(0, 3);
+
+        localStorage.setItem(key, JSON.stringify(leaderboard));
+    }
+
+    function getLeaderboard(testType, difficulty) {
+        const key = `leaderboard_${testType}_${difficulty}`;
+        return JSON.parse(localStorage.getItem(key) || '[]');
+    }
+
+    function displayLeaderboard(testType, difficulty) {
+        const leaderboard = getLeaderboard(testType, difficulty);
+        
+        if (leaderboard.length === 0) {
+            return '<div class="leaderboard-empty">Aucun résultat pour cette catégorie</div>';
+        }
+
+        let html = '';
+        leaderboard.forEach((entry, index) => {
+            html += `
+                <div class="leaderboard-entry">
+                    <span class="leaderboard-rank">#${index + 1}</span>
+                    <span>${entry.name} - ${entry.time}s - ${entry.correct}/${entry.total}</span>
+                </div>
+            `;
+        });
+
+        return html;
+    }
+
+    // Intégrer les classements à la fin du test
+    function showLeaderboard(testType, difficulty) {
+        const leaderboardHTML = `
+            <div class="leaderboard-section">
+                <h3>Top 3 - ${testType} (${difficulty} questions)</h3>
+                ${displayLeaderboard(testType, difficulty)}
+            </div>
+        `;
+        
+        // Ajouter le classement à la page des résultats
+        const resultsSection = document.querySelector('.results-section');
+        if (resultsSection) {
+            resultsSection.insertAdjacentHTML('beforeend', leaderboardHTML);
+        }
+    }
+</script>
 </body>
 </html>
