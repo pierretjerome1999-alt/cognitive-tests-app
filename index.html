@@ -816,8 +816,250 @@
             }
         }
     </style>
-</head>
+
+        // ===== VARIABLES LEADERBOARD =====
+        let leaderboards = {};
+        
+        // Initialiser les 25 leaderboards (5 tests x 5 difficultés)
+        const testNames = ['Test 1', 'Test 2', 'Test 3', 'Test 4', 'Test 5'];
+        const difficulties = ['10 Questions', '20 Questions', '50 Questions', '3 minutes', '9 minutes'];
+        
+        for (let test = 1; test <= 5; test++) {
+            for (let diff = 0; diff < difficulties.length; diff++) {
+                const key = `test${test}_diff${diff}`;
+                leaderboards[key] = JSON.parse(localStorage.getItem(key) || '[]');
+            }
+        }
+        
+        function saveLeaderboards() {
+            for (let test = 1; test <= 5; test++) {
+                for (let diff = 0; diff < difficulties.length; diff++) {
+                    const key = `test${test}_diff${diff}`;
+                    localStorage.setItem(key, JSON.stringify(leaderboards[key]));
+                }
+            }
+        }
+        
+        function getDifficultyLevel() {
+            // Retourne l'indice de difficulté (0-4) basé sur les variables du test
+            if (typeof TOTAL_QUESTIONS !== 'undefined') {
+                if (TOTAL_QUESTIONS === 10) return 0;
+                if (TOTAL_QUESTIONS === 20) return 1;
+                if (TOTAL_QUESTIONS === 50) return 2;
+            }
+            if (typeof TIME_LIMIT !== 'undefined') {
+                if (TIME_LIMIT === 180) return 3; // 3 minutes
+                if (TIME_LIMIT === 540) return 4; // 9 minutes
+            }
+            return 0;
+        }
+        
+        function addToLeaderboard(testNum, diffLevel, name, time, correctAnswers, totalAnswers) {
+            const key = `test${testNum}_diff${diffLevel}`;
+            if (!leaderboards[key]) {
+                leaderboards[key] = [];
+            }
+            
+            // Ajouter le nouveau score
+            leaderboards[key].push({
+                name: name,
+                time: time,
+                correct: correctAnswers,
+                total: totalAnswers
+            });
+            
+            // Trier par temps (ascendant) et garder seulement les 3 meilleurs
+            leaderboards[key].sort((a, b) => a.time - b.time);
+            leaderboards[key] = leaderboards[key].slice(0, 3);
+            
+            // Sauvegarder
+            localStorage.setItem(key, JSON.stringify(leaderboards[key]));
+        }
+        
+        function showLeaderboard(testNum, diffLevel) {
+            const key = `test${testNum}_diff${diffLevel}`;
+            const scores = leaderboards[key] || [];
+            
+            let html = `<h3>Classement - ${testNames[testNum-1]}<br>${difficulties[diffLevel]}</h3>`;
+            html += '<table style="width:100%;"><tr><th>Rang</th><th>Nom</th><th>Temps</th><th>Score</th></tr>';
+            
+            if (scores.length === 0) {
+                html += '<tr><td colspan="4" style="text-align:center;">Aucun résultat</td></tr>';
+            } else {
+                scores.forEach((score, idx) => {
+                    html += `<tr><td>${idx+1}</td><td>${score.name}</td><td>${formatSeconds(score.time)}</td><td>${score.correct}/${score.total}</td></tr>`;
+                });
+            }
+            
+            html += '</table>';
+            return html;
+        }
+        
+        function showNameModal(testNum, diffLevel, time, correctAnswers, totalAnswers) {
+            // Créer un modal pour demander le nom
+            const modal = document.createElement('div');
+            modal.id = 'nameModal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.5);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+            `;
+            
+            const content = document.createElement('div');
+            content.style.cssText = `
+                background: white;
+                padding: 30px;
+                border-radius: 10px;
+                text-align: center;
+                max-width: 400px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            `;
+            
+            content.innerHTML = `
+                <h2>Enregistrer votre score</h2>
+                <p style="margin: 15px 0;">Temps: ${formatSeconds(time)} | Score: ${correctAnswers}/${totalAnswers}</p>
+                <input type="text" id="playerName" placeholder="Entrez votre nom" style="width:100%;padding:10px;margin:10px 0;border:1px solid #ccc;border-radius:5px;">
+                <button onclick="submitScore(${testNum}, ${diffLevel}, ${time}, ${correctAnswers}, ${totalAnswers})" style="width:48%;padding:10px;margin:5px;background:#4CAF50;color:white;border:none;border-radius:5px;cursor:pointer;">Valider</button>
+                <button onclick="closeNameModal()" style="width:48%;padding:10px;margin:5px;background:#999;color:white;border:none;border-radius:5px;cursor:pointer;">Annuler</button>
+            `;
+            
+            content.innerHTML += showLeaderboard(testNum, diffLevel);
+            
+            modal.appendChild(content);
+            document.body.appendChild(modal);
+        }
+        
+        function submitScore(testNum, diffLevel, time, correctAnswers, totalAnswers) {
+            const name = document.getElementById('playerName').value.trim();
+            if (name === '') {
+                alert('Veuillez entrer votre nom');
+                return;
+            }
+            
+            addToLeaderboard(testNum, diffLevel, name, time, correctAnswers, totalAnswers);
+            
+            // Actualiser l'affichage du classement
+            const modal = document.getElementById('nameModal');
+            const content = modal.querySelector('div');
+            content.innerHTML = `
+                <h2>✅ Score enregistré!</h2>
+                <p style="margin: 15px 0;">Nom: <strong>${name}</strong></p>
+                <p>Temps: ${formatSeconds(time)} | Score: ${correctAnswers}/${totalAnswers}</p>
+                <button onclick="closeNameModal()" style="width:100%;padding:10px;margin:10px 0;background:#4CAF50;color:white;border:none;border-radius:5px;cursor:pointer;">Fermer</button>
+            `;
+            
+            content.innerHTML += showLeaderboard(testNum, diffLevel);
+        }
+        
+        function closeNameModal() {
+            const modal = document.getElementById('nameModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+        
+        function formatSeconds(seconds) {
+            if (seconds < 60) return `${seconds}s`;
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins}m${secs}s`;
+        }
+        
+        // ===== FIN LEADERBOARD =====
+
+    </head>
 <body>
+
+    <button id="exitButton" onclick="openExitMenu()" style="
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        width: 40px;
+        height: 40px;
+        background-color: #ff4444;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        font-size: 24px;
+        cursor: pointer;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    ">✕</button>
+    
+    <div id="exitModal" style="
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 9998;
+        align-items: center;
+        justify-content: center;
+    " onclick="closeExitMenu(event)">
+        <div style="
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        " onclick="event.stopPropagation()">
+            <h2>Revenir au menu principal?</h2>
+            <button onclick="confirmExit()" style="width:48%;padding:10px;margin:5px;background:#4CAF50;color:white;border:none;border-radius:5px;cursor:pointer;">Oui</button>
+            <button onclick="closeExitMenu()" style="width:48%;padding:10px;margin:5px;background:#999;color:white;border:none;border-radius:5px;cursor:pointer;">Non</button>
+        </div>
+    </div>
+    
+    <script>
+        function openExitMenu() {
+            document.getElementById('exitModal').style.display = 'flex';
+        }
+        
+        function closeExitMenu(event) {
+            if (event && event.target !== document.getElementById('exitModal')) return;
+            document.getElementById('exitModal').style.display = 'none';
+        }
+        
+        function confirmExit() {
+            // Arrêter tous les timers
+            if (typeof timerInterval !== 'undefined') clearInterval(timerInterval);
+            if (typeof countdownInterval !== 'undefined') clearInterval(countdownInterval);
+            
+            // Réinitialiser toutes les variables de test
+            currentTest = null;
+            currentQuestion = 1;
+            userAnswer = null;
+            score = 0;
+            TOTAL_QUESTIONS = 10;
+            TIME_LIMIT = null;
+            startTime = null;
+            test1ElapsedTime = 0;
+            test2ElapsedTime = 0;
+            test3ElapsedTime = 0;
+            test4ElapsedTime = 0;
+            test5ElapsedTime = 0;
+            
+            // Retour à l'accueil
+            document.getElementById('exitModal').style.display = 'none';
+            const allScreens = document.querySelectorAll('[id^="screen"]');
+            allScreens.forEach(screen => screen.style.display = 'none');
+            if (document.getElementById('screen0')) {
+                document.getElementById('screen0').style.display = 'block';
+            }
+        }
+    </script>
+
+    
     <div class="container">
         <h1 id="mainTitle">📋 Choix des tests</h1>
         <p class="subtitle">Tests d'entraînement cognitif</p>
@@ -1136,58 +1378,6 @@
     </div>
 
     <script>
-
-        // Variables pour le leaderboard
-        let currentTestNum = 1;
-        let currentTestMode = null;
-        let currentTestValue = 0;
-        let currentDifficulty = 1;
-        let currentTestTime = 0;
-        let currentTestScore = 0;
-        let currentTestTotal = 10;
-        
-        function showNameModal(testNum, difficulty, time, score, total) {
-            currentTestNum = testNum;
-            currentDifficulty = difficulty;
-            currentTestTime = time;
-            currentTestScore = score;
-            currentTestTotal = total;
-            
-            document.getElementById('playerName').value = '';
-            document.getElementById('nameModal').style.display = 'flex';
-            document.getElementById('playerName').focus();
-        }
-        
-        function submitScore() {
-            const name = document.getElementById('playerName').value.trim();
-            if (name.length === 0) {
-                alert('Veuillez entrer un nom');
-                return;
-            }
-            
-            addScoreToLeaderboard(currentTestNum, currentDifficulty, name, currentTestTime, currentTestScore, currentTestTotal);
-            showLeaderboard();
-            closeNameModal();
-        }
-        
-        function skipLeaderboard() {
-            closeNameModal();
-            showLeaderboard();
-        }
-        
-        function closeNameModal() {
-            document.getElementById('nameModal').style.display = 'none';
-        }
-        
-        function showLeaderboard() {
-            const leaderboardDisplay = document.getElementById('leaderboardDisplay');
-            const leaderboardContent = document.getElementById('leaderboardContent');
-            
-            const html = getLeaderboardHTML(currentTestNum, currentDifficulty);
-            leaderboardContent.innerHTML = html;
-            leaderboardDisplay.style.display = 'block';
-        }
-
         let TOTAL_QUESTIONS = 10;
         let currentQuestion = 1;
         let score = 0;
@@ -1197,60 +1387,6 @@
         let userAnswer = null;
         let answersHistory = [];
         let timerInterval = null;
-
-        // ===== SYSTÈME DE LEADERBOARD =====
-        // Structure: key = "test{n}_diff{d}" (test 1-5, difficulté 1-5)
-        // Contient: [{name, time, score, total}, ...] (max 3)
-        
-        function getLeaderboardKey(testNum, difficulty) {
-            return `test${testNum}_diff${difficulty}`;
-        }
-        
-        function getLeaderboard(testNum, difficulty) {
-            const key = getLeaderboardKey(testNum, difficulty);
-            const data = localStorage.getItem(key);
-            return data ? JSON.parse(data) : [];
-        }
-        
-        function saveLeaderboard(testNum, difficulty, leaderboard) {
-            const key = getLeaderboardKey(testNum, difficulty);
-            localStorage.setItem(key, JSON.stringify(leaderboard));
-        }
-        
-        function addScoreToLeaderboard(testNum, difficulty, name, time, score, total) {
-            let leaderboard = getLeaderboard(testNum, difficulty);
-            
-            // Ajouter le nouveau score
-            leaderboard.push({name, time, score, total});
-            
-            // Trier par score décroissant, puis par temps croissant
-            leaderboard.sort((a, b) => {
-                if (a.score !== b.score) return b.score - a.score;
-                return a.time - b.time;
-            });
-            
-            // Garder seulement les 3 meilleurs
-            leaderboard = leaderboard.slice(0, 3);
-            
-            saveLeaderboard(testNum, difficulty, leaderboard);
-        }
-        
-        function getLeaderboardHTML(testNum, difficulty) {
-            const leaderboard = getLeaderboard(testNum, difficulty);
-            if (leaderboard.length === 0) return '<p style="text-align: center; color: #999;">Pas encore de résultats</p>';
-            
-            let html = '<table style="width: 100%; text-align: left; font-size: 14px; margin-top: 10px;">';
-            html += '<tr style="border-bottom: 2px solid #667eea;"><th style="padding: 8px;">Rang</th><th>Nom</th><th>Score</th><th>Temps</th></tr>';
-            
-            leaderboard.forEach((entry, i) => {
-                const timeStr = entry.time > 60 ? Math.floor(entry.time / 60) + :' + (entry.time % 60).toString().padStart(2, '0') : entry.time + 's';
-                html += `<tr style="border-bottom: 1px solid #eee;"><td style="padding: 8px;">${i + 1}</td><td>${entry.name}</td><td>${entry.score}/${entry.total}</td><td>${timeStr}</td></tr>`;
-            });
-            
-            html += '</table>';
-            return html;
-        }
-
         let currentTest = 1;
         
         // Variables pour Test 1 (mode temps)
@@ -1375,8 +1511,6 @@
             answersHistory = [];
             startTime = Date.now();
             userAnswer = null;
-            currentTestMode = mode;
-            currentTestValue = value;
             
             clearInterval(timerInterval);
             
@@ -1827,6 +1961,10 @@
             
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById('summary').classList.add('show');
+            setTimeout(() => {
+                const diffLevel = getDifficultyLevel();
+                showNameModal(1, diffLevel, test1ElapsedTime, score, currentQuestion - 1);
+            }, 500);
             document.querySelector('.stats').classList.add('show-score');
             
             document.getElementById('currentQuestion').textContent = TOTAL_QUESTIONS;
@@ -1853,13 +1991,6 @@
             document.getElementById('encouragement').textContent = encouragement;
             
             displayAnswersRecap2();
-            
-            // Afficher le modal pour enregistrer le score au leaderboard
-            setTimeout(() => {
-                const difficulty = getDifficultyFromTest();
-                const totalTime = Math.floor((Date.now() - startTime) / 1000);
-                showNameModal(currentTest, difficulty, totalTime, score, TOTAL_QUESTIONS);
-            }, 500);
         }
 
         function displayAnswersRecap2() {
@@ -2042,25 +2173,15 @@
             document.getElementById('timeDisplay').textContent = elapsed + 's';
         }
 
-        
-        function getDifficultyFromTest() {
-            // 10 questions → 1, 20 → 2, 50 → 3, 180s (3min) → 4, 540s (9min) → 5
-            if (currentTestMode === 'questions') {
-                if (currentTestValue === 10) return 1;
-                if (currentTestValue === 20) return 2;
-                if (currentTestValue === 50) return 3;
-            } else if (currentTestMode === 'time') {
-                if (currentTestValue === 180) return 4;  // 3 minutes
-                if (currentTestValue === 540) return 5;  // 9 minutes
-            }
-            return 1;  // par défaut
-        }
-
         function showSummary() {
             if (timerInterval) clearInterval(timerInterval);
             
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById('summary').classList.add('show');
+            setTimeout(() => {
+                const diffLevel = getDifficultyLevel();
+                showNameModal(1, diffLevel, test1ElapsedTime, score, currentQuestion - 1);
+            }, 500);
             document.querySelector('.stats').classList.add('show-score');
             
             document.getElementById('currentQuestion').textContent = TOTAL_QUESTIONS;
@@ -2087,13 +2208,6 @@
             document.getElementById('encouragement').textContent = encouragement;
 
             displayAnswersRecap();
-            
-            // Afficher le modal pour enregistrer le score au leaderboard
-            setTimeout(() => {
-                const difficulty = getDifficultyFromTest();
-                const totalTime = Math.floor((Date.now() - startTime) / 1000);
-                showNameModal(currentTest, difficulty, totalTime, score, TOTAL_QUESTIONS);
-            }, 500);
         }
 
         function displayAnswersRecap() {
@@ -2318,6 +2432,14 @@
             clearInterval(timerInterval);
             document.querySelector('.stats').classList.add('show-score');
             document.getElementById('summary').classList.add('show');
+            setTimeout(() => {
+                const diffLevel = getDifficultyLevel();
+                showNameModal(3, diffLevel, test3ElapsedTime, score, test3Answers.length);
+            }, 500);
+            setTimeout(() => {
+                const diffLevel = getDifficultyLevel();
+                showNameModal(1, diffLevel, test1ElapsedTime, score, currentQuestion - 1);
+            }, 500);
             document.getElementById('screen11').style.display = 'none';
             document.getElementById('screen12').style.display = 'none';
             
@@ -2353,15 +2475,14 @@
             document.getElementById('encouragement').textContent = encouragement;
 
             displayTest3Recap();
-            
-            // Afficher le modal pour enregistrer au leaderboard
-            setTimeout(() => {
-                const difficulty = getDifficultyFromTest();
-                const totalTime = test3ElapsedTime;
-                showNameModal(currentTest, difficulty, totalTime, score, test3Answers.length);
-            }, 500);
         }
-.isCorrect;
+
+        function displayTest3Recap() {
+            const recapDiv = document.getElementById('answersRecap');
+            let html = '<h3 style="text-align: center; margin-bottom: 30px; color: #333; font-size: 22px;">Détail des réponses</h3>';
+
+            test3Answers.forEach((answer, idx) => {
+                const isCorrect = answer.isCorrect;
                 const correctPosSet = new Set(answer.correctPositions);
                 
                 html += `
@@ -2610,6 +2731,14 @@
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.querySelector('.stats').classList.add('show-score');
             document.getElementById('summary').classList.add('show');
+            setTimeout(() => {
+                const diffLevel = getDifficultyLevel();
+                showNameModal(4, diffLevel, test4ElapsedTime, score, test4Answers.length);
+            }, 500);
+            setTimeout(() => {
+                const diffLevel = getDifficultyLevel();
+                showNameModal(1, diffLevel, test1ElapsedTime, score, currentQuestion - 1);
+            }, 500);
             
             const totalAnswers = test4Answers.length;
             
@@ -2982,15 +3111,23 @@
             } else {
                 newQuestion5();
             }
-            
-            // Afficher le modal pour enregistrer au leaderboard
-            setTimeout(() => {
-                const difficulty = getDifficultyFromTest();
-                const totalTime = test4ElapsedTime;
-                showNameModal(currentTest, difficulty, totalTime, score, test4Answers.length);
-            }, 500);
         }
-nst totalAnswers = test5Answers.length;
+
+        function endTest5() {
+            clearInterval(timerInterval);
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.querySelector('.stats').classList.add('show-score');
+            document.getElementById('summary').classList.add('show');
+            setTimeout(() => {
+                const diffLevel = getDifficultyLevel();
+                showNameModal(5, diffLevel, test5ElapsedTime, score, test5Answers.length);
+            }, 500);
+            setTimeout(() => {
+                const diffLevel = getDifficultyLevel();
+                showNameModal(1, diffLevel, test1ElapsedTime, score, currentQuestion - 1);
+            }, 500);
+            
+            const totalAnswers = test5Answers.length;
             
             if (test5Mode === 'questions') {
                 document.getElementById('finalScore').textContent = `${score}/${totalAnswers}`;
