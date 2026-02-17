@@ -815,102 +815,9 @@
                 min-height: 70px;
             }
         }
-    
-    /* Styles pour le bouton X et le modal */
-    #exitButton {
-        position: fixed;
-        top: 15px;
-        left: 15px;
-        background-color: #ff4444;
-        color: white;
-        border: none;
-        border-radius: 50%;
-        width: 45px;
-        height: 45px;
-        font-size: 28px;
-        cursor: pointer;
-        z-index: 10000;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        font-weight: bold;
-    }
-    #exitButton:hover {
-        background-color: #cc0000;
-    }
-    
-    #exitModal {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0,0,0,0.5);
-        z-index: 9999;
-        justify-content: center;
-        align-items: center;
-    }
-    
-    #exitModal.show {
-        display: flex;
-    }
-    
-    .exitModalContent {
-        background-color: white;
-        padding: 30px;
-        border-radius: 10px;
-        text-align: center;
-        min-width: 300px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    }
-    
-    .exitModalContent h2 {
-        margin-top: 0;
-        color: #333;
-        margin-bottom: 20px;
-    }
-    
-    .exitModalButtons {
-        display: flex;
-        gap: 15px;
-        justify-content: center;
-        margin-top: 20px;
-    }
-    
-    .exitModalButtons button {
-        padding: 10px 30px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        font-size: 16px;
-        font-weight: bold;
-    }
-    
-    .exitModalButtons button:first-child {
-        background-color: #999;
-        color: white;
-    }
-    
-    .exitModalButtons button:first-child:hover {
-        background-color: #777;
-    }
-    
-    .exitModalButtons button:last-child {
-        background-color: #4CAF50;
-        color: white;
-    }
-    
-    .exitModalButtons button:last-child:hover {
-        background-color: #45a049;
-    }
-
     </style>
 </head>
 <body>
-<button id="exitButton" onclick="openExitMenu()">✕</button>
-
     <div class="container">
         <h1 id="mainTitle">📋 Choix des tests</h1>
         <p class="subtitle">Tests d'entraînement cognitif</p>
@@ -1229,6 +1136,58 @@
     </div>
 
     <script>
+
+        // Variables pour le leaderboard
+        let currentTestNum = 1;
+        let currentTestMode = null;
+        let currentTestValue = 0;
+        let currentDifficulty = 1;
+        let currentTestTime = 0;
+        let currentTestScore = 0;
+        let currentTestTotal = 10;
+        
+        function showNameModal(testNum, difficulty, time, score, total) {
+            currentTestNum = testNum;
+            currentDifficulty = difficulty;
+            currentTestTime = time;
+            currentTestScore = score;
+            currentTestTotal = total;
+            
+            document.getElementById('playerName').value = '';
+            document.getElementById('nameModal').style.display = 'flex';
+            document.getElementById('playerName').focus();
+        }
+        
+        function submitScore() {
+            const name = document.getElementById('playerName').value.trim();
+            if (name.length === 0) {
+                alert('Veuillez entrer un nom');
+                return;
+            }
+            
+            addScoreToLeaderboard(currentTestNum, currentDifficulty, name, currentTestTime, currentTestScore, currentTestTotal);
+            showLeaderboard();
+            closeNameModal();
+        }
+        
+        function skipLeaderboard() {
+            closeNameModal();
+            showLeaderboard();
+        }
+        
+        function closeNameModal() {
+            document.getElementById('nameModal').style.display = 'none';
+        }
+        
+        function showLeaderboard() {
+            const leaderboardDisplay = document.getElementById('leaderboardDisplay');
+            const leaderboardContent = document.getElementById('leaderboardContent');
+            
+            const html = getLeaderboardHTML(currentTestNum, currentDifficulty);
+            leaderboardContent.innerHTML = html;
+            leaderboardDisplay.style.display = 'block';
+        }
+
         let TOTAL_QUESTIONS = 10;
         let currentQuestion = 1;
         let score = 0;
@@ -1238,6 +1197,60 @@
         let userAnswer = null;
         let answersHistory = [];
         let timerInterval = null;
+
+        // ===== SYSTÈME DE LEADERBOARD =====
+        // Structure: key = "test{n}_diff{d}" (test 1-5, difficulté 1-5)
+        // Contient: [{name, time, score, total}, ...] (max 3)
+        
+        function getLeaderboardKey(testNum, difficulty) {
+            return `test${testNum}_diff${difficulty}`;
+        }
+        
+        function getLeaderboard(testNum, difficulty) {
+            const key = getLeaderboardKey(testNum, difficulty);
+            const data = localStorage.getItem(key);
+            return data ? JSON.parse(data) : [];
+        }
+        
+        function saveLeaderboard(testNum, difficulty, leaderboard) {
+            const key = getLeaderboardKey(testNum, difficulty);
+            localStorage.setItem(key, JSON.stringify(leaderboard));
+        }
+        
+        function addScoreToLeaderboard(testNum, difficulty, name, time, score, total) {
+            let leaderboard = getLeaderboard(testNum, difficulty);
+            
+            // Ajouter le nouveau score
+            leaderboard.push({name, time, score, total});
+            
+            // Trier par score décroissant, puis par temps croissant
+            leaderboard.sort((a, b) => {
+                if (a.score !== b.score) return b.score - a.score;
+                return a.time - b.time;
+            });
+            
+            // Garder seulement les 3 meilleurs
+            leaderboard = leaderboard.slice(0, 3);
+            
+            saveLeaderboard(testNum, difficulty, leaderboard);
+        }
+        
+        function getLeaderboardHTML(testNum, difficulty) {
+            const leaderboard = getLeaderboard(testNum, difficulty);
+            if (leaderboard.length === 0) return '<p style="text-align: center; color: #999;">Pas encore de résultats</p>';
+            
+            let html = '<table style="width: 100%; text-align: left; font-size: 14px; margin-top: 10px;">';
+            html += '<tr style="border-bottom: 2px solid #667eea;"><th style="padding: 8px;">Rang</th><th>Nom</th><th>Score</th><th>Temps</th></tr>';
+            
+            leaderboard.forEach((entry, i) => {
+                const timeStr = entry.time > 60 ? Math.floor(entry.time / 60) + :' + (entry.time % 60).toString().padStart(2, '0') : entry.time + 's';
+                html += `<tr style="border-bottom: 1px solid #eee;"><td style="padding: 8px;">${i + 1}</td><td>${entry.name}</td><td>${entry.score}/${entry.total}</td><td>${timeStr}</td></tr>`;
+            });
+            
+            html += '</table>';
+            return html;
+        }
+
         let currentTest = 1;
         
         // Variables pour Test 1 (mode temps)
@@ -1362,6 +1375,8 @@
             answersHistory = [];
             startTime = Date.now();
             userAnswer = null;
+            currentTestMode = mode;
+            currentTestValue = value;
             
             clearInterval(timerInterval);
             
@@ -1838,6 +1853,13 @@
             document.getElementById('encouragement').textContent = encouragement;
             
             displayAnswersRecap2();
+            
+            // Afficher le modal pour enregistrer le score au leaderboard
+            setTimeout(() => {
+                const difficulty = getDifficultyFromTest();
+                const totalTime = Math.floor((Date.now() - startTime) / 1000);
+                showNameModal(currentTest, difficulty, totalTime, score, TOTAL_QUESTIONS);
+            }, 500);
         }
 
         function displayAnswersRecap2() {
@@ -2020,6 +2042,20 @@
             document.getElementById('timeDisplay').textContent = elapsed + 's';
         }
 
+        
+        function getDifficultyFromTest() {
+            // 10 questions → 1, 20 → 2, 50 → 3, 180s (3min) → 4, 540s (9min) → 5
+            if (currentTestMode === 'questions') {
+                if (currentTestValue === 10) return 1;
+                if (currentTestValue === 20) return 2;
+                if (currentTestValue === 50) return 3;
+            } else if (currentTestMode === 'time') {
+                if (currentTestValue === 180) return 4;  // 3 minutes
+                if (currentTestValue === 540) return 5;  // 9 minutes
+            }
+            return 1;  // par défaut
+        }
+
         function showSummary() {
             if (timerInterval) clearInterval(timerInterval);
             
@@ -2051,6 +2087,13 @@
             document.getElementById('encouragement').textContent = encouragement;
 
             displayAnswersRecap();
+            
+            // Afficher le modal pour enregistrer le score au leaderboard
+            setTimeout(() => {
+                const difficulty = getDifficultyFromTest();
+                const totalTime = Math.floor((Date.now() - startTime) / 1000);
+                showNameModal(currentTest, difficulty, totalTime, score, TOTAL_QUESTIONS);
+            }, 500);
         }
 
         function displayAnswersRecap() {
@@ -2310,14 +2353,15 @@
             document.getElementById('encouragement').textContent = encouragement;
 
             displayTest3Recap();
+            
+            // Afficher le modal pour enregistrer au leaderboard
+            setTimeout(() => {
+                const difficulty = getDifficultyFromTest();
+                const totalTime = test3ElapsedTime;
+                showNameModal(currentTest, difficulty, totalTime, score, test3Answers.length);
+            }, 500);
         }
-
-        function displayTest3Recap() {
-            const recapDiv = document.getElementById('answersRecap');
-            let html = '<h3 style="text-align: center; margin-bottom: 30px; color: #333; font-size: 22px;">Détail des réponses</h3>';
-
-            test3Answers.forEach((answer, idx) => {
-                const isCorrect = answer.isCorrect;
+.isCorrect;
                 const correctPosSet = new Set(answer.correctPositions);
                 
                 html += `
@@ -2938,15 +2982,15 @@
             } else {
                 newQuestion5();
             }
-        }
-
-        function endTest5() {
-            clearInterval(timerInterval);
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.querySelector('.stats').classList.add('show-score');
-            document.getElementById('summary').classList.add('show');
             
-            const totalAnswers = test5Answers.length;
+            // Afficher le modal pour enregistrer au leaderboard
+            setTimeout(() => {
+                const difficulty = getDifficultyFromTest();
+                const totalTime = test4ElapsedTime;
+                showNameModal(currentTest, difficulty, totalTime, score, test4Answers.length);
+            }, 500);
+        }
+nst totalAnswers = test5Answers.length;
             
             if (test5Mode === 'questions') {
                 document.getElementById('finalScore').textContent = `${score}/${totalAnswers}`;
@@ -3059,104 +3103,6 @@
 
         // Show start screen on load
         showScreen(0);
-    
-// === GESTION DU MENU D'ACCUEIL ===
-function openExitMenu() {
-    document.getElementById('exitModal').classList.add('show');
-}
-
-function closeExitMenu() {
-    document.getElementById('exitModal').classList.remove('show');
-}
-
-function confirmGoHome() {
-    closeExitMenu();
-    
-    // Réinitialiser TOUTES les variables du test
-    currentQuestion = 1;
-    score = 0;
-    currentTest = 1;
-    currentTest4Question = null;
-    currentTest5Question = null;
-    TOTAL_QUESTIONS = 0;
-    selectedAnswers = {};
-    userAnswers = [];
-    
-    // Retourner à l'écran d'accueil (screen0)
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById('screen0').classList.add('active');
-}
-
-// Fermer le modal si on clique en dehors
-document.addEventListener('DOMContentLoaded', function() {
-    var modal = document.getElementById('exitModal');
-    modal.addEventListener('click', function(event) {
-        if (event.target === modal) {
-            closeExitMenu();
-        }
-    });
-});
-
-
-// === SYSTÈME DE CLASSEMENT ===
-const leaderboardKey = 'cognitiveTestsLeaderboard';
-
-function saveResult(testType, difficulty, playerName, score, total) {
-    let leaderboard = JSON.parse(localStorage.getItem(leaderboardKey) || '{}');
-    
-    const key = testType + '_' + difficulty;
-    if (!leaderboard[key]) {
-        leaderboard[key] = [];
-    }
-    
-    // Ajouter le nouveau résultat
-    leaderboard[key].push({
-        name: playerName,
-        score: score,
-        total: total,
-        time: new Date().getTime()
-    });
-    
-    // Trier par score décroissant et garder top 3
-    leaderboard[key].sort((a, b) => b.score - a.score);
-    leaderboard[key] = leaderboard[key].slice(0, 3);
-    
-    localStorage.setItem(leaderboardKey, JSON.stringify(leaderboard));
-}
-
-function getLeaderboard(testType, difficulty) {
-    let leaderboard = JSON.parse(localStorage.getItem(leaderboardKey) || '{}');
-    const key = testType + '_' + difficulty;
-    return leaderboard[key] || [];
-}
-
-function displayLeaderboard(testType, difficulty) {
-    const results = getLeaderboard(testType, difficulty);
-    if (results.length === 0) return '<p style="color: #999;">Aucun résultat encore</p>';
-    
-    let html = '<div style="margin-top: 10px; padding: 15px; background-color: #f5f5f5; border-radius: 5px;">';
-    html += '<h3 style="margin-top: 0; margin-bottom: 10px;">Top 3 Meilleurs Résultats:</h3>';
-    results.forEach((result, index) => {
-        html += `<div style="padding: 8px 0; border-bottom: 1px solid #ddd;">
-            <strong>${index + 1}. ${result.name}</strong> - ${result.score}/${result.total}
-        </div>`;
-    });
-    html += '</div>';
-    return html;
-}
-
-</script>
-
-<!-- Modal de confirmation -->
-<div id="exitModal">
-    <div class="exitModalContent">
-        <h2>Voulez-vous revenir au menu principal?</h2>
-        <div class="exitModalButtons">
-            <button onclick="closeExitMenu()">Non</button>
-            <button onclick="confirmGoHome()">Oui</button>
-        </div>
-    </div>
-</div>
-
+    </script>
 </body>
 </html>
