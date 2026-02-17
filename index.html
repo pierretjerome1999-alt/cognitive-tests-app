@@ -3071,12 +3071,9 @@ function closeExitMenu() {
 
 function confirmGoHome() {
     closeExitMenu();
-    if (typeof currentScreen !== 'undefined') {
-        currentScreen = 'home';
-    }
-    if (typeof showScreen === 'function') {
-        showScreen('home');
-    }
+    // Retourner à l'écran d'accueil (screen0)
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen0').classList.add('active');
 }
 
 // Fermer le modal si on clique en dehors
